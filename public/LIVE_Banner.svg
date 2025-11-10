@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300">
+  <rect width="1200" height="300" fill="#8B0000" />
+  <rect y="20" width="1200" height="260" fill="#B22222" />
+  <text x="50%" y="150" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">
+    LIVE BAR & RESTAURANT
+  </text>
+  <text x="50%" y="220" font-family="Arial, sans-serif" font-size="36" fill="white" text-anchor="middle" dominant-baseline="middle">
+    Authentic Indian Cuisine & Craft Beverages
+  </text>
+</svg>
