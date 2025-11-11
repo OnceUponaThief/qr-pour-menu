@@ -3,8 +3,9 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { MenuCard } from "@/components/MenuCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/currency";
 
 interface MenuItem {
@@ -50,6 +51,7 @@ const Menu = () => {
   const [restaurantSettings, setRestaurantSettings] = useState<RestaurantSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     Promise.all([fetchMenuItems(), fetchOffers(), fetchRestaurantSettings()]);
@@ -61,6 +63,11 @@ const Menu = () => {
       i18n.changeLanguage(restaurantSettings.language_code);
     }
   }, [restaurantSettings, i18n]);
+
+  useEffect(() => {
+    console.log("Menu component mounted");
+    console.log("Search query state:", searchQuery);
+  }, []);
 
   const fetchMenuItems = async () => {
     try {
@@ -194,6 +201,98 @@ const Menu = () => {
     return formatCurrency(price, currencyCode, locale);
   };
 
+  // Filter menu items based on search query
+  const getFilteredMenuItems = () => {
+    if (!searchQuery) return menuItems;
+    
+    console.log("Search query:", searchQuery);
+    const query = searchQuery.toLowerCase().trim();
+    const filtered = menuItems.filter(item => 
+      item.name.toLowerCase().includes(query) || 
+      (item.description && item.description.toLowerCase().includes(query)) ||
+      item.category.toLowerCase().includes(query)
+    );
+    console.log("Filtered items:", filtered);
+    return filtered;
+  };
+
+  // Group filtered categories for tab display
+  const getFilteredGroupedCategories = () => {
+    const filteredItems = getFilteredMenuItems();
+    const grouped: Record<string, string[]> = {
+      drinks: [],
+      food: [],
+      other: [],
+    };
+
+    const uniqueCategories = Array.from(new Set(filteredItems.map((item) => item.category)));
+    
+    uniqueCategories.forEach((category) => {
+      const lowerCategory = category.toLowerCase();
+      let found = false;
+
+      // Check drinks group
+      if (CATEGORY_GROUPS.drinks.some((drinkCat) => lowerCategory.includes(drinkCat) || lowerCategory === drinkCat)) {
+        grouped.drinks.push(category);
+        found = true;
+      }
+
+      // Check food group
+      if (CATEGORY_GROUPS.food.some((foodCat) => lowerCategory.includes(foodCat) || lowerCategory === foodCat)) {
+        grouped.food.push(category);
+        found = true;
+      }
+
+      // If not found in any group, add to other
+      if (!found) {
+        grouped.other.push(category);
+      }
+    });
+
+    return grouped;
+  };
+
+  // Filter items by group based on search query
+  const getFilteredItemsByGroup = (group: string) => {
+    const filteredItems = getFilteredMenuItems();
+    
+    if (!searchQuery) {
+      // When there's no search query, use the original menu items and grouping
+      const groupedCategories = getGroupedCategories();
+      const groupCategories = groupedCategories[group as keyof typeof groupedCategories] || [];
+      
+      if (group === "other") {
+        // For "other" group, include all categories not in drinks or food
+        const allGroupedCategories = [...groupedCategories.drinks, ...groupedCategories.food];
+        return menuItems.filter(item => !allGroupedCategories.includes(item.category));
+      }
+      
+      return menuItems.filter(item => 
+        groupCategories.some(cat => cat === item.category)
+      );
+    } else {
+      // When there's a search query, use the filtered items and grouping
+      const groupedCategories = getFilteredGroupedCategories();
+      const groupCategories = groupedCategories[group as keyof typeof groupedCategories] || [];
+      
+      if (group === "other") {
+        // For "other" group, include all categories not in drinks or food
+        const allGroupedCategories = [...groupedCategories.drinks, ...groupedCategories.food];
+        return filteredItems.filter(item => !allGroupedCategories.includes(item.category));
+      }
+      
+      return filteredItems.filter(item => 
+        groupCategories.some(cat => cat === item.category)
+      );
+    }
+  };
+
+  // Get unique categories within a group for sub-tabs based on search query
+  const getFilteredSubCategories = (group: string) => {
+    const items = getFilteredItemsByGroup(group);
+    return Array.from(new Set(items.map(item => item.category)));
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -202,11 +301,19 @@ const Menu = () => {
     );
   }
 
-  const groupedCategories = getGroupedCategories();
+  const groupedCategories = searchQuery ? getFilteredGroupedCategories() : getGroupedCategories();
+  const filteredMenuItems = getFilteredMenuItems();
 
   return (
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-6xl mx-auto">
+        {/* Restaurant Name Header */}
+        <div className="mb-8 text-center animate-fade-in">
+          <h1 className="text-5xl font-bold text-gradient mb-2">
+            LIVE - FOOD and LIQUID LOUNGE
+          </h1>
+        </div>
+        
         {/* Restaurant Header */}
         <div className="mb-8 animate-fade-in">
           {restaurantSettings?.logo_url ? (
@@ -233,8 +340,44 @@ const Menu = () => {
           <p className="text-muted-foreground text-lg">{t("discover_selection")}</p>
         </div>
 
+        {/* Search Bar - Always visible */}
+        <div className="mb-8 max-w-2xl mx-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+            <Input
+              type="text"
+              placeholder={t("search_menu_items")}
+              className="pl-10 pr-20 py-6 text-lg rounded-full border-2 border-primary/30 shadow-md focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setSearchQuery("")}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="text-center mt-2">
+            <p className="text-sm text-muted-foreground">
+              🔍 Search for items by name, description, or category
+            </p>
+          </div>
+        </div>
+
+        {/* Search Results Info */}
+        {searchQuery && (
+          <div className="mb-6 text-center">
+            <p className="text-muted-foreground">
+              {getFilteredMenuItems().length} {t("items_found_for")} "{searchQuery}"
+            </p>
+          </div>
+        )}
+
         {/* Offers Section */}
-        {offers.length > 0 && (
+        {offers.length > 0 && !searchQuery && (
           <div className="mb-12 animate-fade-in">
             <h2 className="text-3xl font-bold mb-6 text-center text-gradient">{t("special_offers")}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -265,41 +408,26 @@ const Menu = () => {
         ) : (
           <div className="space-y-12">
             {/* Drinks Section */}
-            <section>
-              <h2 className="text-3xl font-bold mb-6 text-foreground">{t("drinks_beverages")}</h2>
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${Math.max(getSubCategories('drinks').length, 1)}, minmax(0, 1fr))` }}>
-                  <TabsTrigger value="all" className="capitalize">{t("all_drinks")}</TabsTrigger>
-                  {getSubCategories('drinks').map((category) => (
-                    <TabsTrigger key={category} value={category} className="capitalize">
-                      {category}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                
-                <TabsContent value="all">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {getItemsByGroup('drinks')
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map((item) => (
-                        <MenuCard
-                          key={item.id}
-                          name={item.name}
-                          description={item.description || undefined}
-                          price={formatPrice(item.price)}
-                          category={item.category}
-                          imageUrl={item.image_url || undefined}
-                          available={item.available}
-                        />
+            {(groupedCategories.drinks.length > 0 || searchQuery) && (
+              <section>
+                <h2 className="text-3xl font-bold mb-6 text-foreground">
+                  {searchQuery ? t("search_results") : t("drinks_beverages")}
+                </h2>
+                <Tabs defaultValue="all" className="w-full">
+                  {!searchQuery && (
+                    <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${Math.max(getFilteredSubCategories('drinks').length, 1)}, minmax(0, 1fr))` }}>
+                      <TabsTrigger value="all" className="capitalize">{t("all_drinks")}</TabsTrigger>
+                      {getFilteredSubCategories('drinks').map((category) => (
+                        <TabsTrigger key={category} value={category} className="capitalize">
+                          {category}
+                        </TabsTrigger>
                       ))}
-                  </div>
-                </TabsContent>
-                
-                {getSubCategories('drinks').map((category) => (
-                  <TabsContent key={category} value={category}>
+                    </TabsList>
+                  )}
+                  
+                  <TabsContent value="all">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {getItemsByGroup('drinks')
-                        .filter(item => item.category === category)
+                      {getFilteredItemsByGroup('drinks')
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map((item) => (
                           <MenuCard
@@ -314,46 +442,52 @@ const Menu = () => {
                         ))}
                     </div>
                   </TabsContent>
-                ))}
-              </Tabs>
-            </section>
+                  
+                  {!searchQuery && getFilteredSubCategories('drinks').map((category) => (
+                    <TabsContent key={category} value={category}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {getFilteredItemsByGroup('drinks')
+                          .filter(item => item.category === category)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((item) => (
+                            <MenuCard
+                              key={item.id}
+                              name={item.name}
+                              description={item.description || undefined}
+                              price={formatPrice(item.price)}
+                              category={item.category}
+                              imageUrl={item.image_url || undefined}
+                              available={item.available}
+                            />
+                          ))}
+                      </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </section>
+            )}
 
             {/* Food Section */}
-            <section>
-              <h2 className="text-3xl font-bold mb-6 text-foreground">{t("food_menu")}</h2>
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${Math.max(getSubCategories('food').length, 1)}, minmax(0, 1fr))` }}>
-                  <TabsTrigger value="all" className="capitalize">{t("all_food")}</TabsTrigger>
-                  {getSubCategories('food').map((category) => (
-                    <TabsTrigger key={category} value={category} className="capitalize">
-                      {category}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                
-                <TabsContent value="all">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {getItemsByGroup('food')
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map((item) => (
-                        <MenuCard
-                          key={item.id}
-                          name={item.name}
-                          description={item.description || undefined}
-                          price={formatPrice(item.price)}
-                          category={item.category}
-                          imageUrl={item.image_url || undefined}
-                          available={item.available}
-                        />
+            {(groupedCategories.food.length > 0 || searchQuery) && (
+              <section>
+                <h2 className="text-3xl font-bold mb-6 text-foreground">
+                  {searchQuery ? t("search_results") : t("food_menu")}
+                </h2>
+                <Tabs defaultValue="all" className="w-full">
+                  {!searchQuery && (
+                    <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${Math.max(getFilteredSubCategories('food').length, 1)}, minmax(0, 1fr))` }}>
+                      <TabsTrigger value="all" className="capitalize">{t("all_food")}</TabsTrigger>
+                      {getFilteredSubCategories('food').map((category) => (
+                        <TabsTrigger key={category} value={category} className="capitalize">
+                          {category}
+                        </TabsTrigger>
                       ))}
-                  </div>
-                </TabsContent>
-                
-                {getSubCategories('food').map((category) => (
-                  <TabsContent key={category} value={category}>
+                    </TabsList>
+                  )}
+                  
+                  <TabsContent value="all">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {getItemsByGroup('food')
-                        .filter(item => item.category === category)
+                      {getFilteredItemsByGroup('food')
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map((item) => (
                           <MenuCard
@@ -368,27 +502,52 @@ const Menu = () => {
                         ))}
                     </div>
                   </TabsContent>
-                ))}
-              </Tabs>
-            </section>
+                  
+                  {!searchQuery && getFilteredSubCategories('food').map((category) => (
+                    <TabsContent key={category} value={category}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {getFilteredItemsByGroup('food')
+                          .filter(item => item.category === category)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((item) => (
+                            <MenuCard
+                              key={item.id}
+                              name={item.name}
+                              description={item.description || undefined}
+                              price={formatPrice(item.price)}
+                              category={item.category}
+                              imageUrl={item.image_url || undefined}
+                              available={item.available}
+                            />
+                          ))}
+                      </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </section>
+            )}
 
             {/* Other Categories (if any) */}
-            {groupedCategories.other.length > 0 && (
+            {((groupedCategories.other.length > 0 && !searchQuery) || (searchQuery && groupedCategories.other.length > 0)) && (
               <section>
-                <h2 className="text-3xl font-bold mb-6 text-foreground">{t("other_items")}</h2>
+                <h2 className="text-3xl font-bold mb-6 text-foreground">
+                  {searchQuery ? t("search_results") : t("other_items")}
+                </h2>
                 <Tabs defaultValue={groupedCategories.other[0] || "all"} className="w-full">
-                  <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${groupedCategories.other.length || 1}, minmax(0, 1fr))` }}>
-                    {groupedCategories.other.map((category) => (
-                      <TabsTrigger key={category} value={category} className="capitalize">
-                        {category}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
+                  {!searchQuery && (
+                    <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${groupedCategories.other.length || 1}, minmax(0, 1fr))` }}>
+                      {groupedCategories.other.map((category) => (
+                        <TabsTrigger key={category} value={category} className="capitalize">
+                          {category}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  )}
                   
                   {groupedCategories.other.map((category) => (
                     <TabsContent key={category} value={category}>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {menuItems
+                        {getFilteredItemsByGroup('other')
                           .filter((item) => item.category === category)
                           .sort((a, b) => a.name.localeCompare(b.name))
                           .map((item) => (
@@ -407,6 +566,13 @@ const Menu = () => {
                   ))}
                 </Tabs>
               </section>
+            )}
+
+            {/* No search results */}
+            {searchQuery && filteredMenuItems.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">{t("no_search_results")}</p>
+              </div>
             )}
           </div>
         )}

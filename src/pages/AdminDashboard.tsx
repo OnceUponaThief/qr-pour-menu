@@ -74,7 +74,7 @@ const AdminDashboard = () => {
     is_active: false,
   });
   const [settingsFormData, setSettingsFormData] = useState({
-    name: "",
+    name: "LIVE - FOOD and LIQUID LOUNGE",
     logo_url: "",
     currency_code: "INR",
     language_code: "en",
@@ -437,6 +437,35 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleMenuItemImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `menu_items/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, image_url: publicUrl });
+      toast.success("Image uploaded successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to upload image");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const generateQRCode = async () => {
     if (!tableNumber.trim()) {
       toast.error("Please enter a table number");
@@ -680,6 +709,30 @@ const AdminDashboard = () => {
                         onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                         placeholder="https://example.com/image.jpg"
                       />
+                      <div className="relative">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleMenuItemImageUpload}
+                          className="hidden"
+                          id="menu-item-image-upload"
+                        />
+                        <Label htmlFor="menu-item-image-upload" className="cursor-pointer">
+                          <Button type="button" variant="outline" className="w-full mt-2">
+                            <Upload className="mr-2 h-4 w-4" />
+                            Upload Image
+                          </Button>
+                        </Label>
+                      </div>
+                      {formData.image_url && (
+                        <div className="mt-2">
+                          <img 
+                            src={formData.image_url} 
+                            alt="Preview" 
+                            className="h-32 w-full object-cover rounded-lg border"
+                          />
+                        </div>
+                      )}
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

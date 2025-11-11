@@ -16,6 +16,10 @@ const resources = {
       "all_food": "All Food",
       "other_items": "Other Items",
       "no_items_available": "No menu items available at the moment.",
+      "search_menu_items": "Search menu items...",
+      "items_found_for": "items found for",
+      "search_results": "Search Results",
+      "no_search_results": "No items match your search. Try different keywords.",
       
       // Admin Dashboard
       "admin_dashboard": "Admin Dashboard",
@@ -70,6 +74,10 @@ const resources = {
       "all_food": "Toda la Comida",
       "other_items": "Otros Artículos",
       "no_items_available": "No hay artículos de menú disponibles en este momento.",
+      "search_menu_items": "Buscar artículos del menú...",
+      "items_found_for": "artículos encontrados para",
+      "search_results": "Resultados de Búsqueda",
+      "no_search_results": "Ningún artículo coincide con tu búsqueda. Prueba con palabras clave diferentes.",
       
       // Admin Dashboard
       "admin_dashboard": "Panel de Administración",
@@ -124,6 +132,10 @@ const resources = {
       "all_food": "Toute la Nourriture",
       "other_items": "Autres Articles",
       "no_items_available": "Aucun article de menu disponible pour le moment.",
+      "search_menu_items": "Rechercher des articles de menu...",
+      "items_found_for": "articles trouvés pour",
+      "search_results": "Résultats de Recherche",
+      "no_search_results": "Aucun article ne correspond à votre recherche. Essayez différents mots-clés.",
       
       // Admin Dashboard
       "admin_dashboard": "Tableau de Bord Admin",
@@ -178,6 +190,10 @@ const resources = {
       "all_food": "सभी भोजन",
       "other_items": "अन्य वस्तुएं",
       "no_items_available": "इस समय कोई मेनू वस्तुएं उपलब्ध नहीं हैं।",
+      "search_menu_items": "मेनू वस्तुएं खोजें...",
+      "items_found_for": "वस्तुएं मिलीं",
+      "search_results": "खोज परिणाम",
+      "no_search_results": "आपकी खोज से मेल खाने वाली कोई वस्तु नहीं मिली। अलग-अलग कीवर्ड आज़माएं।",
       
       // Admin Dashboard
       "admin_dashboard": "व्यवस्थापक डैशबोर्ड",

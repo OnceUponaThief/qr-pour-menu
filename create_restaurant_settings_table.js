@@ -75,7 +75,7 @@ async function createRestaurantSettingsTable() {
 
         -- Insert default restaurant settings
         INSERT INTO public.restaurant_settings (name, currency_code, language_code, timezone) 
-        VALUES ('Restaurant Name', 'INR', 'en', 'Asia/Kolkata')
+        VALUES ('LIVE - FOOD and LIQUID LOUNGE', 'INR', 'en', 'Asia/Kolkata')
         ON CONFLICT DO NOTHING;
       `
     });

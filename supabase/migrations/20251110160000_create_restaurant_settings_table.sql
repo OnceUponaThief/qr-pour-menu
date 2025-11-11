@@ -58,5 +58,5 @@ CREATE TRIGGER set_updated_at_restaurant_settings
 
 -- Insert default restaurant settings if none exist
 INSERT INTO public.restaurant_settings (name, currency_code, language_code, timezone) 
-SELECT 'Restaurant Name', 'INR', 'en', 'Asia/Kolkata'
+SELECT 'LIVE - FOOD and LIQUID LOUNGE', 'INR', 'en', 'Asia/Kolkata'
 WHERE NOT EXISTS (SELECT 1 FROM public.restaurant_settings);
