@@ -469,16 +469,124 @@ const AdminDashboard = () => {
   const generateQRCode = async () => {
     try {
       const menuUrl = `${window.location.origin}/menu`;
+      
+      // Create a canvas to draw our custom QR code
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
+      
+      // Generate base QR code
       const qrDataUrl = await QRCode.toDataURL(menuUrl, {
         width: 512,
         margin: 2,
         color: {
-          dark: "#000000",
-          light: "#FFFFFF",
+          dark: "#00f0ff", // Cyberpunk cyan
+          light: "#000000", // Black background
         },
       });
-      setQrCodeUrl(qrDataUrl);
-      toast.success("QR code generated!");
+      
+      // Create image from QR code data
+      const img = new Image();
+      img.src = qrDataUrl;
+      
+      // Wait for image to load
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+      
+      // Set canvas dimensions
+      canvas.width = 600;
+      canvas.height = 600;
+      
+      // Draw cyberpunk background
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw glow effect
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(40, 40, 520, 520);
+      
+      // Reset shadow
+      ctx.shadowBlur = 0;
+      
+      // Draw QR code in the center
+      ctx.drawImage(img, 44, 44, 512, 512);
+      
+      // Draw "LIVE" text with cyberpunk styling
+      ctx.font = 'bold 48px "Courier New", monospace';
+      ctx.fillStyle = '#00f0ff';
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 10;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Draw "LIVE" text in the center of the QR code
+      ctx.fillText('LIVE', canvas.width / 2, canvas.height / 2);
+      
+      // Draw decorative elements
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 5;
+      
+      // Draw corner decorations
+      // Top-left
+      ctx.beginPath();
+      ctx.moveTo(40, 40);
+      ctx.lineTo(40, 80);
+      ctx.lineTo(80, 80);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(40, 40);
+      ctx.lineTo(80, 40);
+      ctx.lineTo(80, 80);
+      ctx.stroke();
+      
+      // Top-right
+      ctx.beginPath();
+      ctx.moveTo(560, 40);
+      ctx.lineTo(560, 80);
+      ctx.lineTo(520, 80);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(560, 40);
+      ctx.lineTo(520, 40);
+      ctx.lineTo(520, 80);
+      ctx.stroke();
+      
+      // Bottom-left
+      ctx.beginPath();
+      ctx.moveTo(40, 560);
+      ctx.lineTo(40, 520);
+      ctx.lineTo(80, 520);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(40, 560);
+      ctx.lineTo(80, 560);
+      ctx.lineTo(80, 520);
+      ctx.stroke();
+      
+      // Bottom-right
+      ctx.beginPath();
+      ctx.moveTo(560, 560);
+      ctx.lineTo(560, 520);
+      ctx.lineTo(520, 520);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(560, 560);
+      ctx.lineTo(520, 560);
+      ctx.lineTo(520, 520);
+      ctx.stroke();
+      
+      // Convert to data URL
+      const cyberpunkQrDataUrl = canvas.toDataURL('image/png');
+      setQrCodeUrl(cyberpunkQrDataUrl);
+      toast.success("Cyberpunk QR code generated!");
     } catch (error) {
       toast.error("Failed to generate QR code");
       console.error(error);

@@ -324,17 +324,34 @@ const Menu = () => {
           )}
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-8 max-w-2xl mx-auto animate-fade-in">
+        {/* Enhanced Search Bar */}
+        <div className="mb-8 max-w-3xl mx-auto animate-fade-in">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400" size={20} />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-400" size={24} />
             <Input
               type="text"
-              placeholder={t("search_placeholder")}
+              placeholder="Search menu items, categories, or descriptions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-6 text-lg bg-gray-800 border-2 border-cyan-500/30 text-white placeholder-cyan-300/50 rounded-xl focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all"
+              className="pl-14 pr-6 py-6 text-lg bg-gray-800 border-2 border-cyan-500/50 text-white placeholder-cyan-300/70 rounded-2xl focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/30 transition-all shadow-lg shadow-cyan-500/10"
             />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <div className="mt-2 text-center text-cyan-300/80 text-sm">
+            {searchQuery ? (
+              <span>Showing results for "{searchQuery}"</span>
+            ) : (
+              <span>Search for items by name, category, or description</span>
+            )}
           </div>
         </div>
 
