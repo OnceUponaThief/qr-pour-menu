@@ -299,10 +299,6 @@ const Menu = () => {
   return (
     <div 
       className="min-h-screen py-8 px-4 bg-gray-900"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      ref={menuRef}
     >
       <div className="max-w-7xl mx-auto">
         {/* Restaurant Header */}
@@ -532,35 +528,6 @@ const Menu = () => {
         )}
       </div>
     </div>
-  );
-};
-
-export default Menu;((item) => (
-                  <MenuCard
-                    key={item.id}
-                    name={item.name}
-                    description={item.description || undefined}
-                    price={formatPrice(item.price)}
-                    category={item.category}
-                    imageUrl={item.image_url || undefined}
-                    available={item.available}
-                  />
-                ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        {getFilteredMenuItems().length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-lg">{t("no_items_found")}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default Menu;
   );
 };
 

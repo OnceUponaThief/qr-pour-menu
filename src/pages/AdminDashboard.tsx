@@ -216,6 +216,34 @@ const AdminDashboard = () => {
     navigate("/admin/login");
   };
 
+  // Add new function for creating admin users
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Convert username to email for Supabase authentication
+      const email = adminFormData.username === "admin" ? "admin@livebar.com" : `${adminFormData.username}@livebar.com`;
+      
+      // Create the admin user
+      const { error } = await supabase.auth.signUp({
+        email,
+        password: adminFormData.password,
+      });
+
+      if (error) throw error;
+
+      toast.success("Admin account created successfully!");
+      setAdminDialogOpen(false);
+      setAdminFormData({ username: "", password: "" });
+    } catch (error: any) {
+      console.error("Error creating admin:", error);
+      toast.error(error.message || "Failed to create admin account");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -666,60 +694,40 @@ const AdminDashboard = () => {
     window.print();
   };
 
-  // Add new function for creating admin users
-  const handleCreateAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      // Convert username to email for Supabase authentication
-      const email = `${adminFormData.username}@livebar.com`;
-      
-      // Create the admin user
-      const { error } = await supabase.auth.signUp({
-        email,
-        password: adminFormData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/admin`,
-        },
-      } as any);
-
-      if (error) throw error;
-
-      toast.success("Admin account created successfully! The new admin will receive an email to confirm their account.");
-      setAdminDialogOpen(false);
-      setAdminFormData({ username: "", password: "" });
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create admin account");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Add new function for fetching analytics data
   const fetchAnalyticsData = async () => {
     setAnalyticsLoading(true);
-
     try {
-      const { data, error } = await supabase
-        .from("analytics")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const analytics = data[0];
-        setAnalyticsData({
-          totalViews: analytics.total_views,
-          popularItems: analytics.popular_items,
-          peakHours: analytics.peak_hours,
-          dailyViews: analytics.daily_views,
-        });
-      } else {
-        toast.error("No analytics data found.");
-      }
+      // Mock analytics data for now - in a real implementation, this would come from your analytics service
+      // For example, you could use Supabase to store and retrieve analytics data
+      const mockAnalytics = {
+        totalViews: Math.floor(Math.random() * 1000) + 500,
+        popularItems: [
+          { name: "Whiskey Sour", views: 124 },
+          { name: "Nachos", views: 98 },
+          { name: "Craft Beer", views: 87 },
+          { name: "Caesar Salad", views: 76 },
+          { name: "Chocolate Cake", views: 65 },
+        ],
+        peakHours: [
+          { hour: 19, views: 120 },
+          { hour: 20, views: 115 },
+          { hour: 21, views: 110 },
+          { hour: 18, views: 95 },
+          { hour: 22, views: 85 },
+        ],
+        dailyViews: [
+          { date: "2023-06-01", views: 45 },
+          { date: "2023-06-02", views: 52 },
+          { date: "2023-06-03", views: 67 },
+          { date: "2023-06-04", views: 58 },
+          { date: "2023-06-05", views: 73 },
+          { date: "2023-06-06", views: 61 },
+          { date: "2023-06-07", views: 55 },
+        ],
+      };
+      
+      setAnalyticsData(mockAnalytics);
     } catch (error) {
       console.error("Error fetching analytics data:", error);
       toast.error("Failed to load analytics data");
@@ -986,7 +994,7 @@ const AdminDashboard = () => {
               </div>
               <Dialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button onClick={() => setAdminFormData({ username: "", password: "" })}>
                     <Plus className="mr-2 h-4 w-4" />
                     Add Admin
                   </Button>
@@ -1000,37 +1008,30 @@ const AdminDashboard = () => {
                   </DialogHeader>
                   <form onSubmit={handleCreateAdmin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="admin-username">Username</Label>
+                      <Label htmlFor="admin-username">Username *</Label>
                       <Input
                         id="admin-username"
-                        type="text"
-                        placeholder="Enter username"
                         value={adminFormData.username}
                         onChange={(e) => setAdminFormData({ ...adminFormData, username: e.target.value })}
                         required
+                        placeholder="Enter username"
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Username will be converted to {adminFormData.username || "username"}@livebar.com
-                      </p>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="admin-password">Password</Label>
+                      <Label htmlFor="admin-password">Password *</Label>
                       <Input
                         id="admin-password"
                         type="password"
-                        placeholder="Enter password"
                         value={adminFormData.password}
                         onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
                         required
                         minLength={6}
+                        placeholder="Enter password"
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Password must be at least 6 characters long
-                      </p>
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Create Admin Account
+                      Create Admin
                     </Button>
                   </form>
                 </DialogContent>
@@ -1038,9 +1039,14 @@ const AdminDashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <p>Use the "Add Admin" button to create new administrator accounts.</p>
-              <p className="text-sm mt-2">All admins will have full access to manage the menu and settings.</p>
+            <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
+              <p className="text-yellow-300 text-sm">
+                <strong>Note:</strong> New admins will receive an email invitation to set up their account. 
+                They can then log in using their username and the password you've set.
+              </p>
+            </div>
+            <div className="text-center text-muted-foreground py-4">
+              <p>Admin management functionality is ready. Click "Add Admin" to create new administrator accounts.</p>
             </div>
           </CardContent>
         </Card>
@@ -1269,7 +1275,7 @@ const AdminDashboard = () => {
                     </div>
                     <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                       </svg>
                     </div>
                   </div>
@@ -1505,56 +1511,6 @@ const AdminDashboard = () => {
           .qr-print-item p {
             color: #000 !important;
             margin: 0.5rem 0 !important;
-          }
-        }
-      `}</style>
-    </div>
-  );
-};
-
-export default AdminDashboard;
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Print-only styles */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .print-preview,
-          .print-preview * {
-            visibility: visible;
-          }
-          .print-preview {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            display: grid !important;
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 1rem !important;
-            padding: 1rem;
-          }
-          .qr-print-item {
-            break-inside: avoid;
-            page-break-inside: avoid;
-            border: 2px solid #000 !important;
-            padding: 1rem !important;
-            background: white !important;
-          }
-          .qr-print-item p {
-            color: #000 !important;
-            margin: 0.5rem 0 !important;
-          }
-        }
-      `}</style>
-    </div>
-  );
-};
-
-export default AdminDashboard;important;
           }
         }
       `}</style>
