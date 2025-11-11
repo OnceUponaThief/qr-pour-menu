@@ -84,6 +84,12 @@ const AdminDashboard = () => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [bulkTables, setBulkTables] = useState("");
   const [bulkQrCodes, setBulkQrCodes] = useState<Array<{ table: string; url: string }>>([]);
+  // Add new state for admin management
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
+  const [adminFormData, setAdminFormData] = useState({
+    username: "",
+    password: "",
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -652,6 +658,36 @@ const AdminDashboard = () => {
     window.print();
   };
 
+  // Add new function for creating admin users
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Convert username to email for Supabase authentication
+      const email = `${adminFormData.username}@livebar.com`;
+      
+      // Create the admin user
+      const { error } = await supabase.auth.signUp({
+        email,
+        password: adminFormData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/admin`,
+        },
+      } as any);
+
+      if (error) throw error;
+
+      toast.success("Admin account created successfully! The new admin will receive an email to confirm their account.");
+      setAdminDialogOpen(false);
+      setAdminFormData({ username: "", password: "" });
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create admin account");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading || !session) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -897,6 +933,75 @@ const AdminDashboard = () => {
                 </Table>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Admin Management Section */}
+        <Card className="border-border bg-card animate-fade-in mt-8">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Admin Management</CardTitle>
+                <CardDescription>Create and manage admin accounts</CardDescription>
+              </div>
+              <Dialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Admin
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Create New Admin</DialogTitle>
+                    <DialogDescription>
+                      Add a new administrator account with username and password
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateAdmin} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="admin-username">Username</Label>
+                      <Input
+                        id="admin-username"
+                        type="text"
+                        placeholder="Enter username"
+                        value={adminFormData.username}
+                        onChange={(e) => setAdminFormData({ ...adminFormData, username: e.target.value })}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Username will be converted to {adminFormData.username || "username"}@livebar.com
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="admin-password">Password</Label>
+                      <Input
+                        id="admin-password"
+                        type="password"
+                        placeholder="Enter password"
+                        value={adminFormData.password}
+                        onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
+                        required
+                        minLength={6}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Password must be at least 6 characters long
+                      </p>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Create Admin Account
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Use the "Add Admin" button to create new administrator accounts.</p>
+              <p className="text-sm mt-2">All admins will have full access to manage the menu and settings.</p>
+            </div>
           </CardContent>
         </Card>
 
