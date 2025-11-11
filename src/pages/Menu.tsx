@@ -297,19 +297,8 @@ const Menu = () => {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4 relative">
-      {/* Circuit board background pattern */}
-      <div className="absolute inset-0 z-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '20px 20px'
-        }}></div>
-      </div>
-      
-      <div className="max-w-7xl mx-auto relative z-10">
+    <div className="min-h-screen py-8 px-4 bg-gray-900">
+      <div className="max-w-7xl mx-auto">
         {/* Restaurant Header */}
         <div className="mb-8 md:mb-12 animate-fade-in">
           {restaurantSettings?.logo_url ? (
@@ -322,13 +311,13 @@ const Menu = () => {
                   className="h-20 md:h-32 w-auto object-contain relative z-10 drop-shadow-2xl"
                 />
               </div>
-              <h1 className="text-3xl md:text-5xl font-bold text-center neon-gradient-text pixel-font">
+              <h1 className="text-3xl md:text-5xl font-bold text-center text-white">
                 {restaurantSettings.name}
               </h1>
             </div>
           ) : (
             <div className="text-center">
-              <h1 className="text-3xl md:text-5xl font-bold mb-2 neon-gradient-text pixel-font">
+              <h1 className="text-3xl md:text-5xl font-bold mb-2 text-white">
                 {restaurantSettings?.name || t("restaurant_menu")}
               </h1>
             </div>
@@ -344,24 +333,24 @@ const Menu = () => {
               placeholder={t("search_placeholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-6 text-lg bg-black/50 border-2 border-cyan-500/30 text-white placeholder-cyan-300/50 rounded-xl focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all"
+              className="pl-10 pr-4 py-6 text-lg bg-gray-800 border-2 border-cyan-500/30 text-white placeholder-cyan-300/50 rounded-xl focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all"
             />
           </div>
         </div>
 
         {/* Active Offers */}
-        {activeOffers.length > 0 && (
+        {offers.filter(offer => offer.is_active).length > 0 && (
           <div className="mb-8 animate-fade-in">
-            <div className="tech-card neon-border rounded-xl overflow-hidden">
-              <div className="tech-card-header">
-                <h2 className="text-2xl font-bold neon-gradient-text pixel-font flex items-center gap-2">
+            <div className="bg-gray-800 border border-cyan-500/30 rounded-xl overflow-hidden">
+              <div className="bg-gray-900 border-b border-cyan-500/30 p-4">
+                <h2 className="text-2xl font-bold text-cyan-400 flex items-center gap-2">
                   <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
                   {t("offers_and_promotions")}
                 </h2>
               </div>
               <div className="p-4 space-y-3">
-                {activeOffers.map((offer) => (
-                  <div key={offer.id} className="flex items-center gap-3 p-3 bg-black/30 rounded-lg border border-pink-500/30">
+                {offers.filter(offer => offer.is_active).map((offer) => (
+                  <div key={offer.id} className="flex items-center gap-3 p-3 bg-gray-900/50 rounded-lg border border-pink-500/30">
                     <div className="flex-shrink-0 w-3 h-3 bg-pink-500 rounded-full animate-pulse"></div>
                     <div>
                       <h3 className="font-bold text-pink-300">{offer.title}</h3>
@@ -378,34 +367,34 @@ const Menu = () => {
 
         {/* Menu Tabs */}
         <Tabs defaultValue="all" className="animate-fade-in">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 mb-8 bg-black/30 border border-cyan-500/30 rounded-xl p-1">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 mb-8 bg-gray-800 border border-cyan-500/30 rounded-xl p-1">
             <TabsTrigger 
               value="all" 
-              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300 data-[state=active]:border-cyan-400 border border-transparent rounded-lg transition-all pixel-font"
+              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300 data-[state=active]:border-cyan-400 border border-transparent rounded-lg transition-all"
             >
               {t("all")}
             </TabsTrigger>
             <TabsTrigger 
               value="drinks" 
-              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300 data-[state=active]:border-cyan-400 border border-transparent rounded-lg transition-all pixel-font"
+              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300 data-[state=active]:border-cyan-400 border border-transparent rounded-lg transition-all"
             >
               {t("drinks")}
             </TabsTrigger>
             <TabsTrigger 
               value="food" 
-              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300 data-[state=active]:border-cyan-400 border border-transparent rounded-lg transition-all pixel-font"
+              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300 data-[state=active]:border-cyan-400 border border-transparent rounded-lg transition-all"
             >
               {t("food")}
             </TabsTrigger>
             <TabsTrigger 
               value="desserts" 
-              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300 data-[state=active]:border-cyan-400 border border-transparent rounded-lg transition-all pixel-font"
+              className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300 data-[state=active]:border-cyan-400 border border-transparent rounded-lg transition-all"
             >
               {t("desserts")}
             </TabsTrigger>
             <TabsTrigger 
               value="specials" 
-              className="data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-300 data-[state=active]:border-pink-400 border border-transparent rounded-lg transition-all pixel-font"
+              className="data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-300 data-[state=active]:border-pink-400 border border-transparent rounded-lg transition-all"
             >
               {t("specials")}
             </TabsTrigger>
