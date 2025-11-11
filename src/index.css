@@ -8,41 +8,51 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 220 18% 12%;
-    --foreground: 40 10% 95%;
+    --background: 220 18% 8%;
+    --foreground: 40 10% 98%;
 
-    --card: 220 16% 16%;
-    --card-foreground: 40 10% 95%;
+    --card: 220 16% 12% / 0.6;
+    --card-foreground: 40 10% 98%;
 
-    --popover: 220 16% 16%;
-    --popover-foreground: 40 10% 95%;
+    --popover: 220 16% 12% / 0.95;
+    --popover-foreground: 40 10% 98%;
 
     --primary: 35 95% 58%;
-    --primary-foreground: 220 18% 12%;
+    --primary-foreground: 220 18% 8%;
 
-    --secondary: 220 14% 20%;
-    --secondary-foreground: 40 10% 95%;
+    --secondary: 220 14% 16% / 0.8;
+    --secondary-foreground: 40 10% 98%;
 
-    --muted: 220 14% 20%;
-    --muted-foreground: 40 5% 65%;
+    --muted: 220 14% 18% / 0.6;
+    --muted-foreground: 40 5% 70%;
 
     --accent: 35 95% 58%;
-    --accent-foreground: 220 18% 12%;
+    --accent-foreground: 220 18% 8%;
 
     --destructive: 0 72% 51%;
-    --destructive-foreground: 40 10% 95%;
+    --destructive-foreground: 40 10% 98%;
 
-    --border: 220 14% 24%;
-    --input: 220 14% 24%;
+    --border: 220 14% 28% / 0.5;
+    --input: 220 14% 20% / 0.8;
     --ring: 35 95% 58%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* Custom tokens */
+    /* Glassmorphic tokens */
+    --glass-bg: 220 16% 12% / 0.4;
+    --glass-border: 220 14% 35% / 0.3;
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --glass-blur: blur(12px);
+    
+    /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(35, 95%, 58%), hsl(35, 95%, 68%));
-    --gradient-dark: linear-gradient(180deg, hsl(220, 18%, 12%), hsl(220, 18%, 8%));
-    --shadow-glow: 0 0 40px hsl(35 95% 58% / 0.2);
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(35, 95%, 58%) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(35, 75%, 48%) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsl(220, 18%, 12%) 0px, transparent 50%);
+    
+    /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 }
 
@@ -53,22 +63,47 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(180deg, hsl(220, 18%, 12%), hsl(220, 18%, 8%));
+    background: hsl(220, 18%, 8%);
+    background-image: var(--gradient-mesh);
+    background-attachment: fixed;
     min-height: 100vh;
   }
 }
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-primary to-amber-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-amber-400 to-primary bg-clip-text text-transparent;
+    background-size: 200% auto;
+    animation: shimmer 3s linear infinite;
+  }
+  
+  .glass-card {
+    background: hsla(var(--glass-bg));
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid hsla(var(--glass-border));
+    box-shadow: var(--glass-shadow);
   }
   
   .card-glow {
-    box-shadow: 0 0 40px hsl(35 95% 58% / 0.15);
+    box-shadow: 0 0 40px hsl(35 95% 58% / 0.2), 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+  
+  .card-glow-hover {
+    transition: var(--transition-smooth);
+  }
+  
+  .card-glow-hover:hover {
+    box-shadow: 0 0 60px hsl(35 95% 58% / 0.35), 0 12px 48px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
   }
   
   .animate-fade-in {
     animation: fadeIn 0.6s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
   }
   
   @keyframes fadeIn {
@@ -79,6 +114,23 @@ All colors MUST be HSL.
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes shimmer {
+    to {
+      background-position: 200% center;
     }
   }
 }

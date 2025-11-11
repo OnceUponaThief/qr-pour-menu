@@ -205,51 +205,54 @@ const Menu = () => {
   const groupedCategories = getGroupedCategories();
 
   return (
-    <div className="min-h-screen py-12 px-4">
+    <div className="min-h-screen py-8 px-4 md:py-12">
       <div className="max-w-6xl mx-auto">
         {/* Restaurant Header */}
-        <div className="mb-8 animate-fade-in">
+        <div className="mb-8 md:mb-12 animate-fade-in">
           {restaurantSettings?.logo_url ? (
-            <div className="flex flex-col items-center">
-              <img 
-                src={restaurantSettings.logo_url} 
-                alt={`${restaurantSettings.name} Logo`}
-                className="h-24 w-auto object-contain mb-4"
-              />
-              <h1 className="text-4xl font-bold text-center text-gradient">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+                <img 
+                  src={restaurantSettings.logo_url} 
+                  alt={`${restaurantSettings.name} Logo`}
+                  className="h-20 md:h-32 w-auto object-contain relative z-10 drop-shadow-2xl"
+                />
+              </div>
+              <h1 className="text-3xl md:text-5xl font-bold text-center text-gradient">
                 {restaurantSettings.name}
               </h1>
             </div>
           ) : (
             <div className="text-center">
-              <h1 className="text-4xl font-bold mb-2 text-gradient">
+              <h1 className="text-3xl md:text-5xl font-bold mb-2 text-gradient">
                 {restaurantSettings?.name || t("restaurant_menu")}
               </h1>
             </div>
           )}
         </div>
         
-        <div className="text-center mb-12 animate-fade-in">
-          <p className="text-muted-foreground text-lg">{t("discover_selection")}</p>
+        <div className="text-center mb-8 md:mb-12 animate-fade-in">
+          <p className="text-muted-foreground text-base md:text-lg">{t("discover_selection")}</p>
         </div>
 
         {/* Offers Section */}
         {offers.length > 0 && (
-          <div className="mb-12 animate-fade-in">
-            <h2 className="text-3xl font-bold mb-6 text-center text-gradient">{t("special_offers")}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mb-8 md:mb-12 animate-fade-in">
+            <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center text-gradient">{t("special_offers")}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {offers.map((offer) => (
-                <div key={offer.id} className="border border-border rounded-lg p-6 bg-card shadow-md hover:shadow-lg transition-shadow">
+                <div key={offer.id} className="glass-card border-border/50 rounded-xl p-6 card-glow-hover">
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-xl font-bold text-foreground">{offer.title}</h3>
-                    <Badge variant="secondary" className="bg-green-500 text-white">
+                    <h3 className="text-lg md:text-xl font-bold text-foreground">{offer.title}</h3>
+                    <Badge variant="secondary" className="bg-green-500/80 backdrop-blur-sm text-white text-xs">
                       {t("special_offers")}
                     </Badge>
                   </div>
                   {offer.description && (
-                    <p className="text-muted-foreground mb-4">{offer.description}</p>
+                    <p className="text-muted-foreground mb-4 text-sm">{offer.description}</p>
                   )}
-                  <div className="text-sm text-primary font-medium">
+                  <div className="text-xs md:text-sm text-primary font-medium">
                     🎉 {t("limited_time_offer")}
                   </div>
                 </div>
@@ -263,22 +266,22 @@ const Menu = () => {
             <p className="text-muted-foreground text-lg">{t("no_items_available")}</p>
           </div>
         ) : (
-          <div className="space-y-12">
+          <div className="space-y-8 md:space-y-12">
             {/* Drinks Section */}
-            <section>
-              <h2 className="text-3xl font-bold mb-6 text-foreground">{t("drinks_beverages")}</h2>
+            <section className="animate-slide-up">
+              <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-foreground">{t("drinks_beverages")}</h2>
               <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${Math.max(getSubCategories('drinks').length, 1)}, minmax(0, 1fr))` }}>
-                  <TabsTrigger value="all" className="capitalize">{t("all_drinks")}</TabsTrigger>
+                <TabsList className="w-full mb-6 md:mb-8 flex-nowrap overflow-x-auto">
+                  <TabsTrigger value="all" className="capitalize shrink-0">{t("all_drinks")}</TabsTrigger>
                   {getSubCategories('drinks').map((category) => (
-                    <TabsTrigger key={category} value={category} className="capitalize">
+                    <TabsTrigger key={category} value={category} className="capitalize shrink-0">
                       {category}
                     </TabsTrigger>
                   ))}
                 </TabsList>
                 
                 <TabsContent value="all">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {getItemsByGroup('drinks')
                       .sort((a, b) => a.name.localeCompare(b.name))
                       .map((item) => (
@@ -297,7 +300,7 @@ const Menu = () => {
                 
                 {getSubCategories('drinks').map((category) => (
                   <TabsContent key={category} value={category}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                       {getItemsByGroup('drinks')
                         .filter(item => item.category === category)
                         .sort((a, b) => a.name.localeCompare(b.name))
@@ -319,20 +322,20 @@ const Menu = () => {
             </section>
 
             {/* Food Section */}
-            <section>
-              <h2 className="text-3xl font-bold mb-6 text-foreground">{t("food_menu")}</h2>
+            <section className="animate-slide-up">
+              <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-foreground">{t("food_menu")}</h2>
               <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${Math.max(getSubCategories('food').length, 1)}, minmax(0, 1fr))` }}>
-                  <TabsTrigger value="all" className="capitalize">{t("all_food")}</TabsTrigger>
+                <TabsList className="w-full mb-6 md:mb-8 flex-nowrap overflow-x-auto">
+                  <TabsTrigger value="all" className="capitalize shrink-0">{t("all_food")}</TabsTrigger>
                   {getSubCategories('food').map((category) => (
-                    <TabsTrigger key={category} value={category} className="capitalize">
+                    <TabsTrigger key={category} value={category} className="capitalize shrink-0">
                       {category}
                     </TabsTrigger>
                   ))}
                 </TabsList>
                 
                 <TabsContent value="all">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {getItemsByGroup('food')
                       .sort((a, b) => a.name.localeCompare(b.name))
                       .map((item) => (
@@ -351,7 +354,7 @@ const Menu = () => {
                 
                 {getSubCategories('food').map((category) => (
                   <TabsContent key={category} value={category}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                       {getItemsByGroup('food')
                         .filter(item => item.category === category)
                         .sort((a, b) => a.name.localeCompare(b.name))
@@ -374,12 +377,12 @@ const Menu = () => {
 
             {/* Other Categories (if any) */}
             {groupedCategories.other.length > 0 && (
-              <section>
-                <h2 className="text-3xl font-bold mb-6 text-foreground">{t("other_items")}</h2>
+              <section className="animate-slide-up">
+                <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-foreground">{t("other_items")}</h2>
                 <Tabs defaultValue={groupedCategories.other[0] || "all"} className="w-full">
-                  <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${groupedCategories.other.length || 1}, minmax(0, 1fr))` }}>
+                  <TabsList className="w-full mb-6 md:mb-8 flex-nowrap overflow-x-auto">
                     {groupedCategories.other.map((category) => (
-                      <TabsTrigger key={category} value={category} className="capitalize">
+                      <TabsTrigger key={category} value={category} className="capitalize shrink-0">
                         {category}
                       </TabsTrigger>
                     ))}
@@ -387,7 +390,7 @@ const Menu = () => {
                   
                   {groupedCategories.other.map((category) => (
                     <TabsContent key={category} value={category}>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                         {menuItems
                           .filter((item) => item.category === category)
                           .sort((a, b) => a.name.localeCompare(b.name))

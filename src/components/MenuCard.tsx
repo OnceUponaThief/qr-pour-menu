@@ -12,26 +12,26 @@ interface MenuCardProps {
 
 export const MenuCard = ({ name, description, price, category, imageUrl, available }: MenuCardProps) => {
   return (
-    <Card className="overflow-hidden border-border bg-card hover:card-glow transition-all duration-300 animate-fade-in">
+    <Card className="overflow-hidden glass-card border-border/50 card-glow-hover animate-fade-in">
       {imageUrl && (
-        <div className="aspect-video w-full overflow-hidden bg-muted">
+        <div className="aspect-video w-full overflow-hidden bg-muted/40 backdrop-blur-sm">
           <img 
             src={imageUrl} 
             alt={name}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
           />
         </div>
       )}
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-xl font-bold text-foreground">{name}</h3>
-          <span className="text-primary text-xl font-bold">{price}</span>
+          <span className="text-primary text-xl font-bold drop-shadow-[0_0_10px_rgba(251,146,60,0.5)]">{price}</span>
         </div>
         {description && (
-          <p className="text-muted-foreground mb-3 text-sm">{description}</p>
+          <p className="text-muted-foreground mb-3 text-sm leading-relaxed">{description}</p>
         )}
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="text-xs">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-secondary/80">
             {category}
           </Badge>
           {!available && (
