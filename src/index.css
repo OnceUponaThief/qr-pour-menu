@@ -17,8 +17,9 @@ All colors MUST be HSL.
     --popover: 220 16% 12% / 0.95;
     --popover-foreground: 40 10% 98%;
 
-    --primary: 35 95% 58%;
-    --primary-foreground: 220 18% 8%;
+    /* Blue color theme */
+    --primary: 210 85% 55%; /* Blue */
+    --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 220 14% 16% / 0.8;
     --secondary-foreground: 40 10% 98%;
@@ -26,15 +27,15 @@ All colors MUST be HSL.
     --muted: 220 14% 18% / 0.6;
     --muted-foreground: 40 5% 70%;
 
-    --accent: 35 95% 58%;
-    --accent-foreground: 220 18% 8%;
+    --accent: 210 85% 55%; /* Blue */
+    --accent-foreground: 0 0% 100%; /* White */
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 40 10% 98%;
 
     --border: 220 14% 28% / 0.5;
     --input: 220 14% 20% / 0.8;
-    --ring: 35 95% 58%;
+    --ring: 210 85% 55%; /* Blue */
 
     --radius: 1rem;
 
@@ -44,10 +45,10 @@ All colors MUST be HSL.
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     --glass-blur: blur(12px);
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(35, 95%, 58%), hsl(35, 95%, 68%));
-    --gradient-mesh: radial-gradient(at 40% 20%, hsl(35, 95%, 58%) 0px, transparent 50%),
-                     radial-gradient(at 80% 0%, hsl(35, 75%, 48%) 0px, transparent 50%),
+    /* Blue gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(210, 85%, 55%), hsl(210, 85%, 65%));
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(210, 85%, 55%) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(210, 75%, 45%) 0px, transparent 50%),
                      radial-gradient(at 0% 50%, hsl(220, 18%, 12%) 0px, transparent 50%);
     
     /* Animations */
@@ -72,7 +73,7 @@ All colors MUST be HSL.
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-primary via-amber-400 to-primary bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-blue-400 to-primary bg-clip-text text-transparent;
     background-size: 200% auto;
     animation: shimmer 3s linear infinite;
   }
@@ -86,7 +87,7 @@ All colors MUST be HSL.
   }
   
   .card-glow {
-    box-shadow: 0 0 40px hsl(35 95% 58% / 0.2), 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 40px hsl(210 85% 55% / 0.2), 0 8px 32px rgba(0, 0, 0, 0.4);
   }
   
   .card-glow-hover {
@@ -94,7 +95,7 @@ All colors MUST be HSL.
   }
   
   .card-glow-hover:hover {
-    box-shadow: 0 0 60px hsl(35 95% 58% / 0.35), 0 12px 48px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 60px hsl(210 85% 55% / 0.35), 0 12px 48px rgba(0, 0, 0, 0.5);
     transform: translateY(-2px);
   }
   

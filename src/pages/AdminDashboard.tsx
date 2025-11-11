@@ -467,11 +467,6 @@ const AdminDashboard = () => {
   };
 
   const generateQRCode = async () => {
-    if (!tableNumber.trim()) {
-      toast.error("Please enter a table number");
-      return;
-    }
-
     try {
       const menuUrl = `${window.location.origin}/menu`;
       const qrDataUrl = await QRCode.toDataURL(menuUrl, {
@@ -495,7 +490,7 @@ const AdminDashboard = () => {
 
     const link = document.createElement("a");
     link.href = qrCodeUrl;
-    link.download = `table-${tableNumber}-qr-code.png`;
+    link.download = `restaurant-menu-qr-code.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -803,37 +798,26 @@ const AdminDashboard = () => {
               <QrCode className="h-5 w-5 text-primary" />
               <div>
                 <CardTitle>QR Code Generator</CardTitle>
-                <CardDescription>Generate QR codes for tables to access the menu</CardDescription>
+                <CardDescription>Generate a QR code to access the menu</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tableNumber">Table Number or Name</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="tableNumber"
-                      value={tableNumber}
-                      onChange={(e) => setTableNumber(e.target.value)}
-                      placeholder="e.g., Table 1, Bar, Patio"
-                    />
-                    <Button onClick={generateQRCode}>
-                      <QrCode className="mr-2 h-4 w-4" />
-                      Generate
-                    </Button>
-                  </div>
-                </div>
                 <div className="p-4 bg-secondary/50 rounded-lg space-y-2">
                   <p className="text-sm font-medium">Menu URL:</p>
                   <code className="text-xs text-primary break-all">
                     {window.location.origin}/menu
                   </code>
                   <p className="text-xs text-muted-foreground mt-2">
-                    All QR codes will point to this URL
+                    Scan this QR code to access your digital menu
                   </p>
                 </div>
+                <Button onClick={generateQRCode} className="w-full">
+                  <QrCode className="mr-2 h-4 w-4" />
+                  Generate QR Code
+                </Button>
               </div>
               <div className="flex flex-col items-center justify-center space-y-4">
                 {qrCodeUrl ? (
@@ -841,77 +825,18 @@ const AdminDashboard = () => {
                     <div className="bg-white p-4 rounded-lg">
                       <img src={qrCodeUrl} alt="QR Code" className="w-64 h-64" />
                     </div>
-                    <div className="text-center space-y-2">
-                      <p className="text-sm font-medium">
-                        QR Code for: <span className="text-primary">{tableNumber}</span>
-                      </p>
-                      <Button onClick={downloadQRCode} className="w-full">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download QR Code
-                      </Button>
-                    </div>
+                    <Button onClick={downloadQRCode} className="w-full">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download QR Code
+                    </Button>
                   </>
                 ) : (
                   <div className="text-center text-muted-foreground py-12">
                     <QrCode className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <p>Enter a table number and click Generate</p>
+                    <p>Click "Generate QR Code" to create your menu QR code</p>
                   </div>
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border bg-card animate-fade-in mt-8">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Printer className="h-5 w-5 text-primary" />
-              <div>
-                <CardTitle>Bulk QR Code Generator</CardTitle>
-                <CardDescription>Generate and print multiple QR codes at once</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="bulkTables">Table Numbers (comma or line separated)</Label>
-                <textarea
-                  id="bulkTables"
-                  className="w-full min-h-[120px] px-3 py-2 rounded-md border border-input bg-background text-foreground"
-                  value={bulkTables}
-                  onChange={(e) => setBulkTables(e.target.value)}
-                  placeholder="Table 1, Table 2, Table 3&#10;or&#10;Table 1&#10;Table 2&#10;Table 3"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={generateBulkQRCodes} className="flex-1">
-                  <QrCode className="mr-2 h-4 w-4" />
-                  Generate All QR Codes
-                </Button>
-                <Button 
-                  onClick={printQRCodes} 
-                  variant="outline"
-                  disabled={bulkQrCodes.length === 0}
-                >
-                  <Printer className="mr-2 h-4 w-4" />
-                  Print All ({bulkQrCodes.length})
-                </Button>
-              </div>
-              
-              {bulkQrCodes.length > 0 && (
-                <div className="print-preview mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {bulkQrCodes.map((qr, index) => (
-                    <div key={index} className="qr-print-item border border-border rounded-lg p-4 text-center space-y-2">
-                      <div className="bg-white p-2 rounded">
-                        <img src={qr.url} alt={`QR Code for ${qr.table}`} className="w-full h-auto" />
-                      </div>
-                      <p className="font-semibold text-foreground">{qr.table}</p>
-                      <p className="text-xs text-muted-foreground">Scan for Menu</p>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
