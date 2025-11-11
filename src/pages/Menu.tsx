@@ -459,7 +459,7 @@ const Menu = () => {
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-6 backdrop-blur-sm">
               <div className="flex items-center gap-3 mb-3">
                 <Sparkles className="h-6 w-6 text-amber-400" />
-                <h2 className="text-2xl font-bold text-amber-300">{t('menu.offers.title')}</h2>
+                <h2 className="text-2xl font-bold text-amber-300">Special Offers</h2>
               </div>
               <div className="grid gap-3">
                 {activeOffers.map((offer) => (
