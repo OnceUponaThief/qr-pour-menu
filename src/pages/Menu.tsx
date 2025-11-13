@@ -724,6 +724,33 @@ const Menu = () => {
         {renderMenuItems()}
       </div>
 
+      {/* Brand Footer with Logo and Website Link */}
+      <footer className="mt-8 border-t border-white/10 bg-black/30">
+        <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <a
+            href="https://www.thelive.bar/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3"
+            aria-label="Visit LIVE - Eat. Drink. Code. Repeat website"
+          >
+            <img
+              src="/LIVE_Banner_TaglineRepeat_Fixed.jpg"
+              alt="LIVE — Eat. Drink. Code. Repeat"
+              className="h-16 sm:h-20 object-contain drop-shadow-[var(--brand-shadow)]"
+            />
+          </a>
+          <a
+            href="https://www.thelive.bar/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm sm:text-base text-cyan-300 hover:text-pink-300 transition-colors underline underline-offset-4"
+          >
+            thelive.bar
+          </a>
+        </div>
+      </footer>
+
       {/* Review Dialog */}
       {selectedReviewItemId && (
         <ReviewDialog
