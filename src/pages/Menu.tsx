@@ -595,57 +595,7 @@ const Menu = () => {
           </div>
         </div>
 
-        {/* Reviews Section */}
-        <div className="mb-12 animate-fade-in">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-6 w-6 text-pink-400" />
-              <h2 className="text-3xl font-bold brand-gradient-text">Customer Reviews</h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <Select onValueChange={(val) => {
-                const item = menuItems.find(mi => mi.id === val);
-                setSelectedReviewItemId(val);
-                setSelectedReviewItemName(item?.name || "");
-              }}>
-                <SelectTrigger className="w-56 bg-gray-800 border-cyan-500/30">
-                  <SelectValue placeholder="Choose item" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 text-white">
-                  {menuItems.map(mi => (
-                    <SelectItem key={mi.id} value={mi.id}>{mi.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                className="bg-gradient-to-r from-cyan-500 via-violet-500 to-pink-500 text-gray-900"
-                disabled={!selectedReviewItemId}
-                onClick={() => setReviewDialogOpen(true)}
-              >
-                Write a Review
-              </Button>
-            </div>
-          </div>
-
-          {reviews.length === 0 ? (
-            <div className="text-center py-8 text-gray-300">No approved reviews yet. Be the first to write one!</div>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {reviews.map((r) => (
-                <ReviewCard
-                  key={r.id}
-                  customerName={r.customer_name}
-                  rating={r.rating}
-                  reviewText={r.review_text || undefined}
-                  photoUrls={r.photo_urls || undefined}
-                  adminReply={r.admin_reply || undefined}
-                  createdAt={r.created_at}
-                  adminReplyAt={r.admin_reply_at || undefined}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Reviews section moved to end of menu as requested */}
 
         {/* Special Sections */}
         {groupedItems.chefSpecial.length > 0 && (
@@ -722,6 +672,98 @@ const Menu = () => {
 
         {/* Menu Items */}
         {renderMenuItems()}
+
+        {/* End-of-menu Reviews & AI-generated samples */}
+        <div className="mt-16 mb-12 animate-fade-in">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-6 w-6 text-pink-400" />
+              <h2 className="text-3xl font-bold brand-gradient-text">Customer Reviews</h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <Select onValueChange={(val) => {
+                const item = menuItems.find(mi => mi.id === val);
+                setSelectedReviewItemId(val);
+                setSelectedReviewItemName(item?.name || "");
+              }}>
+                <SelectTrigger className="w-56 bg-gray-800 border-cyan-500/30">
+                  <SelectValue placeholder="Choose item" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-900 text-white">
+                  {menuItems.map(mi => (
+                    <SelectItem key={mi.id} value={mi.id}>{mi.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                className="bg-gradient-to-r from-cyan-500 via-violet-500 to-pink-500 text-gray-900"
+                disabled={!selectedReviewItemId}
+                onClick={() => setReviewDialogOpen(true)}
+              >
+                Write a Review
+              </Button>
+            </div>
+          </div>
+
+          {reviews.length === 0 ? (
+            <div className="text-center py-8 text-gray-300">No approved reviews yet. Be the first to write one!</div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {reviews.map((r) => (
+                <ReviewCard
+                  key={r.id}
+                  customerName={r.customer_name}
+                  rating={r.rating}
+                  reviewText={r.review_text || undefined}
+                  photoUrls={r.photo_urls || undefined}
+                  adminReply={r.admin_reply || undefined}
+                  createdAt={r.created_at}
+                  adminReplyAt={r.admin_reply_at || undefined}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* AI-generated sample reviews (non-customer, demo only) */}
+          <div className="mt-10">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-cyan-300">🔒</span>
+              <h3 className="text-xl font-semibold">Sample Reviews (AI-generated)</h3>
+            </div>
+            <p className="text-sm text-gray-400 mb-4">The following reviews are generated for demo purposes only and do not represent real customer feedback.</p>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[
+                {
+                  name: "Aarav Sharma",
+                  rating: 5,
+                  text: "Loved the signature cocktail — balanced, aromatic, and perfectly chilled.",
+                  avatar: "https://api.dicebear.com/7.x/initials/svg?seed=Aarav%20Sharma&backgroundType=gradient&radius=50",
+                },
+                {
+                  name: "Ananya Iyer",
+                  rating: 4,
+                  text: "The appetizers were crisp and flavorful. Great value during happy hours!",
+                  avatar: "https://api.dicebear.com/7.x/initials/svg?seed=Ananya%20Iyer&backgroundType=gradient&radius=50",
+                },
+                {
+                  name: "Rohit Verma",
+                  rating: 5,
+                  text: "Fast service and a clean digital menu. Multi-language support was handy.",
+                  avatar: "https://api.dicebear.com/7.x/initials/svg?seed=Rohit%20Verma&backgroundType=gradient&radius=50",
+                },
+              ].map((s, idx) => (
+                <ReviewCard
+                  key={`ai-sample-${idx}`}
+                  customerName={s.name}
+                  rating={s.rating}
+                  reviewText={s.text}
+                  createdAt={new Date().toISOString()}
+                  avatarUrl={s.avatar}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Brand Footer with Logo and Website Link */}

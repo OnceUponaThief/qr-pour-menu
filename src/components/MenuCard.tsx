@@ -46,7 +46,7 @@ export const MenuCard = ({
   };
   
   return (
-    <Card className="overflow-hidden bg-black border border-cyan-500/30 rounded-xl shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 touch-manipulation">
+    <Card className="overflow-hidden bg-black border border-cyan-500/30 rounded-xl shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 touch-manipulation select-none active:scale-[0.99]">
       {imageUrl && (
         <div className="aspect-video w-full overflow-hidden bg-gray-900">
           <img 

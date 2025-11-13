@@ -60,6 +60,14 @@ interface RestaurantSettings {
   updated_at: string | null;
 }
 
+// AI configuration (stored locally for now)
+interface AiSettings {
+  enabled: boolean;
+  apiBaseUrl: string;
+  apiKey: string;
+  modelName?: string;
+}
+
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -150,6 +158,14 @@ const AdminDashboard = () => {
   const [bulkTables, setBulkTables] = useState("");
   const [bulkQrCodes, setBulkQrCodes] = useState<Array<{ table: string; url: string }>>([]);
 
+  // AI settings state (local storage persistence)
+  const [aiSettings, setAiSettings] = useState<AiSettings>({
+    enabled: false,
+    apiBaseUrl: "",
+    apiKey: "",
+    modelName: "",
+  });
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -190,6 +206,29 @@ const AdminDashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Load AI settings from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("ai_settings");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setAiSettings({
+          enabled: !!parsed.enabled,
+          apiBaseUrl: parsed.apiBaseUrl || "",
+          apiKey: parsed.apiKey || "",
+          modelName: parsed.modelName || "",
+        });
+      }
+    } catch (e) {
+      // ignore parse errors
+    }
+  }, []);
+
+  const saveAiSettings = () => {
+    localStorage.setItem("ai_settings", JSON.stringify(aiSettings));
+    toast.success("AI settings saved.");
+  };
 
   useEffect(() => {
     if (session) {
@@ -1076,6 +1115,47 @@ const AdminDashboard = () => {
                 </p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Support Settings */}
+        <Card className="border-border bg-card animate-fade-in mb-8">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>AI Support</CardTitle>
+                <CardDescription>Configure API for AI-assisted updates</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="ai-enabled" className="mr-4">Enable AI</Label>
+                <Switch id="ai-enabled" checked={aiSettings.enabled} onCheckedChange={(val) => setAiSettings({ ...aiSettings, enabled: val })} />
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="ai-base">API Base URL</Label>
+                <Input id="ai-base" placeholder="https://api.openai.com/v1" value={aiSettings.apiBaseUrl} onChange={(e) => setAiSettings({ ...aiSettings, apiBaseUrl: e.target.value })} />
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="ai-key">API Key</Label>
+                <Input id="ai-key" type="password" placeholder="sk-..." value={aiSettings.apiKey} onChange={(e) => setAiSettings({ ...aiSettings, apiKey: e.target.value })} />
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="ai-model">Model (optional)</Label>
+                <Input id="ai-model" placeholder="gpt-4o-mini" value={aiSettings.modelName || ""} onChange={(e) => setAiSettings({ ...aiSettings, modelName: e.target.value })} />
+              </div>
+            </div>
+            <div className="mt-4 flex gap-3">
+              <Button onClick={saveAiSettings}>Save</Button>
+              <Button variant="outline" onClick={() => {
+                localStorage.removeItem("ai_settings");
+                setAiSettings({ enabled: false, apiBaseUrl: "", apiKey: "", modelName: "" });
+                toast.success("AI settings cleared");
+              }}>Clear</Button>
+            </div>
+            <p className="text-muted-foreground text-xs mt-3">Keys are stored locally in your browser and are not sent to our servers.</p>
           </CardContent>
         </Card>
 

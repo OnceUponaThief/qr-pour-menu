@@ -10,6 +10,8 @@ interface ReviewCardProps {
   adminReply?: string;
   createdAt: string;
   adminReplyAt?: string;
+  /** Optional avatar image URL (e.g., Dicebear or user-uploaded). */
+  avatarUrl?: string;
 }
 
 export const ReviewCard = ({
@@ -20,6 +22,7 @@ export const ReviewCard = ({
   adminReply,
   createdAt,
   adminReplyAt,
+  avatarUrl,
 }: ReviewCardProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -36,9 +39,17 @@ export const ReviewCard = ({
         {/* Customer Info & Rating */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center shadow-lg">
-              <User className="h-5 w-5 md:h-6 md:w-6 text-white" />
-            </div>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={customerName}
+                className="h-10 w-10 md:h-12 md:w-12 rounded-full border border-cyan-500/30 object-cover shadow-lg"
+              />
+            ) : (
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center shadow-lg">
+                <User className="h-5 w-5 md:h-6 md:w-6 text-white" />
+              </div>
+            )}
             <div>
               <p className="font-semibold text-white text-sm md:text-base">{customerName}</p>
               <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
