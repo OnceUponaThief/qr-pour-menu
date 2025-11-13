@@ -12,6 +12,16 @@ dist
 dist-ssr
 *.local
 
+# Environment files
+.env
+.env.*
+
+# Supabase CLI temp files
+supabase/.temp/
+
+# Build artifacts (Vite/Workbox dev build output)
+dev-dist/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
