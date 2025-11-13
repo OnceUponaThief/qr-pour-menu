@@ -65,6 +65,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [categoryFilter, setCategoryFilter] = useState<'all' | 'food' | 'drinks'>('all');
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [restaurantSettings, setRestaurantSettings] = useState<RestaurantSettings | null>(null);
@@ -220,6 +221,58 @@ const AdminDashboard = () => {
       console.error("Error fetching menu items:", error);
       toast.error("Failed to load menu items");
     }
+  };
+
+  // Define category groups (same as Menu.tsx)
+  const CATEGORY_GROUPS = {
+    drinks: ["drinks", "cocktails", "beer", "wine", "whiskey", "vodka", "gin", "rum", "brandy"],
+    food: ["food", "appetizers", "soup", "main course", "rice", "noodles", "dal", "bread", "desserts"],
+  };
+
+  // Filter menu items by category
+  const getFilteredMenuItems = () => {
+    if (categoryFilter === 'all') return menuItems;
+
+    return menuItems.filter(item => {
+      const lowerCategory = item.category.toLowerCase();
+
+      if (categoryFilter === 'drinks') {
+        return CATEGORY_GROUPS.drinks.some(drinkCat =>
+          lowerCategory.includes(drinkCat) || lowerCategory === drinkCat
+        );
+      }
+
+      if (categoryFilter === 'food') {
+        return CATEGORY_GROUPS.food.some(foodCat =>
+          lowerCategory.includes(foodCat) || lowerCategory === foodCat
+        );
+      }
+
+      return false;
+    });
+  };
+
+  // Get counts for each category
+  const getDrinksCount = () => menuItems.filter(item => {
+    const lowerCategory = item.category.toLowerCase();
+    return CATEGORY_GROUPS.drinks.some(drinkCat =>
+      lowerCategory.includes(drinkCat) || lowerCategory === drinkCat
+    );
+  }).length;
+
+  const getFoodCount = () => menuItems.filter(item => {
+    const lowerCategory = item.category.toLowerCase();
+    return CATEGORY_GROUPS.food.some(foodCat =>
+      lowerCategory.includes(foodCat) || lowerCategory === foodCat
+    );
+  }).length;
+
+  // Helper to check if a category is a drink category
+  const isDrinkCategory = (category: string) => {
+    const lowerCategory = (category || '').toLowerCase();
+    return CATEGORY_GROUPS.drinks.some(drinkCat =>
+      lowerCategory.includes(drinkCat) || lowerCategory === drinkCat
+    );
   };
 
   const fetchOffers = async () => {
@@ -403,6 +456,40 @@ const AdminDashboard = () => {
     }
   };
 
+  // Inline editing helpers for volume prices on table (30ml/60ml/90ml)
+  const getItemVolumePrice = (item: MenuItem, size: '30ml' | '60ml' | '90ml') => {
+    const mod = (item.modifiers || []).find(m => m.name.toLowerCase() === size.toLowerCase());
+    return mod ? mod.price : '';
+  };
+
+  const updateItemVolumePrice = async (item: MenuItem, size: '30ml' | '60ml' | '90ml', value: string) => {
+    try {
+      const mods = [...(item.modifiers || [])];
+      const idx = mods.findIndex(m => m.name.toLowerCase() === size.toLowerCase());
+      if (value === '') {
+        if (idx >= 0) mods.splice(idx, 1);
+      } else {
+        const price = parseFloat(value);
+        const safePrice = isNaN(price) ? 0 : price;
+        if (idx >= 0) {
+          mods[idx] = { ...mods[idx], name: size, price: safePrice };
+        } else {
+          mods.push({ id: Math.random().toString(36).substr(2, 9), name: size, price: safePrice });
+        }
+      }
+
+      const { error } = await supabase
+        .from('menu_items')
+        .update({ modifiers: mods as any })
+        .eq('id', item.id);
+      if (error) throw error;
+      toast.success(`${size} price updated`);
+      fetchMenuItems();
+    } catch (error: any) {
+      toast.error(error.message || `Failed to update ${size} price`);
+    }
+  };
+
   // Add function to add a modifier
   const addModifier = () => {
     if (modifierForm.name && modifierForm.price) {
@@ -436,6 +523,83 @@ const AdminDashboard = () => {
       ...formData,
       modifiers: formData.modifiers.filter(mod => mod.id !== id),
     });
+  };
+
+  // Volume/Size pricing helpers for 30ml/60ml/90ml
+  const VOLUME_SIZES = ["30ml", "60ml", "90ml"] as const;
+  const getVolumePrice = (size: typeof VOLUME_SIZES[number]) => {
+    const mod = formData.modifiers.find(m => m.name.toLowerCase() === size.toLowerCase());
+    return mod ? mod.price.toString() : "";
+  };
+  const setVolumePrice = (size: typeof VOLUME_SIZES[number], value: string) => {
+    setFormData(prev => {
+      const mods = [...prev.modifiers];
+      const idx = mods.findIndex(m => m.name.toLowerCase() === size.toLowerCase());
+      if (value === "") {
+        // Remove size modifier if cleared
+        if (idx >= 0) mods.splice(idx, 1);
+        return { ...prev, modifiers: mods };
+      }
+      const price = parseFloat(value);
+      const safePrice = isNaN(price) ? 0 : price;
+      if (idx >= 0) {
+        mods[idx] = { ...mods[idx], name: size, price: safePrice };
+      } else {
+        mods.push({ id: Math.random().toString(36).substr(2, 9), name: size, price: safePrice });
+      }
+      return { ...prev, modifiers: mods };
+    });
+  };
+
+  // Inline image update helpers for table
+  const updateItemImageUrl = async (item: MenuItem, url: string) => {
+    try {
+      const cleanUrl = (url || '').trim();
+      const { error } = await supabase
+        .from('menu_items')
+        .update({ image_url: cleanUrl || null })
+        .eq('id', item.id);
+      if (error) throw error;
+      toast.success('Image URL updated');
+      fetchMenuItems();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update image URL');
+    }
+  };
+
+  const handleInlineImageUpload = async (item: MenuItem, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `menu_items/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+
+      const { error } = await supabase
+        .from('menu_items')
+        .update({ image_url: publicUrl })
+        .eq('id', item.id);
+      if (error) throw error;
+
+      toast.success('Image uploaded and saved');
+      fetchMenuItems();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload image');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Add function to toggle dietary preference
@@ -1046,6 +1210,57 @@ const AdminDashboard = () => {
                       )}
                     </div>
 
+                    {/* Volume/Size Pricing (shown for drink categories) */}
+                    {CATEGORY_GROUPS.drinks.some(drinkCat => {
+                      const lc = (formData.category || '').toLowerCase();
+                      return lc.includes(drinkCat) || lc === drinkCat;
+                    }) && (
+                      <div className="space-y-4 border-t pt-4">
+                        <h3 className="text-lg font-medium">Volume/Size Pricing</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Set prices for 30ml, 60ml, and 90ml. When these are set, the customer menu shows only the volume pricing for this drink.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="vol-30">30ml Price</Label>
+                            <Input
+                              id="vol-30"
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={getVolumePrice("30ml")}
+                              onChange={(e) => setVolumePrice("30ml", e.target.value)}
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="vol-60">60ml Price</Label>
+                            <Input
+                              id="vol-60"
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={getVolumePrice("60ml")}
+                              onChange={(e) => setVolumePrice("60ml", e.target.value)}
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="vol-90">90ml Price</Label>
+                            <Input
+                              id="vol-90"
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={getVolumePrice("90ml")}
+                              onChange={(e) => setVolumePrice("90ml", e.target.value)}
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Modifiers Section */}
                     <div className="space-y-4 border-t pt-4">
                       <h3 className="text-lg font-medium">Item Modifiers (Extras & Customizations)</h3>
@@ -1163,12 +1378,43 @@ const AdminDashboard = () => {
                     </Button>
                   </form>
                 </DialogContent>
-              </Dialog>
+               </Dialog>
             </div>
           </CardHeader>
           <CardContent>
-            {menuItems.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No menu items yet. Add your first item!</p>
+            {/* Category Filter Tabs */}
+            <div className="mb-6">
+              <div className="flex gap-2 p-1 bg-secondary rounded-lg">
+                <Button
+                  variant={categoryFilter === 'all' ? 'default' : 'ghost'}
+                  className="flex-1"
+                  onClick={() => setCategoryFilter('all')}
+                >
+                  All Items ({menuItems.length})
+                </Button>
+                <Button
+                  variant={categoryFilter === 'drinks' ? 'default' : 'ghost'}
+                  className="flex-1"
+                  onClick={() => setCategoryFilter('drinks')}
+                >
+                  Drinks ({getDrinksCount()})
+                </Button>
+                <Button
+                  variant={categoryFilter === 'food' ? 'default' : 'ghost'}
+                  className="flex-1"
+                  onClick={() => setCategoryFilter('food')}
+                >
+                  Food ({getFoodCount()})
+                </Button>
+              </div>
+            </div>
+
+            {getFilteredMenuItems().length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                {categoryFilter === 'all'
+                  ? 'No menu items yet. Add your first item!'
+                  : `No ${categoryFilter} items found.`}
+              </p>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
@@ -1177,16 +1423,96 @@ const AdminDashboard = () => {
                       <TableHead>Name</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Price</TableHead>
+                      <TableHead>Image</TableHead>
+                      <TableHead>30ml</TableHead>
+                      <TableHead>60ml</TableHead>
+                      <TableHead>90ml</TableHead>
                       <TableHead>Available</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {menuItems.map((item) => (
+                    {getFilteredMenuItems().map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell className="capitalize">{item.category}</TableCell>
                         <TableCell>₹{item.price.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {item.image_url ? (
+                              <img src={item.image_url} alt="thumb" className="h-10 w-10 rounded object-cover border" />
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                            <div className="flex items-center gap-1">
+                              <Input
+                                type="url"
+                                defaultValue={item.image_url || ''}
+                                placeholder="Image URL"
+                                className="w-40"
+                                onBlur={(e) => updateItemImageUrl(item, e.target.value)}
+                              />
+                              <div>
+                                <Input
+                                  type="file"
+                                  accept="image/*"
+                                  id={`upload-${item.id}`}
+                                  className="hidden"
+                                  onChange={(e) => handleInlineImageUpload(item, e)}
+                                />
+                                <Label htmlFor={`upload-${item.id}`} className="cursor-pointer">
+                                  <Button type="button" variant="outline" size="sm">Upload</Button>
+                                </Label>
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        {/* Inline editable volume prices for drink items */}
+                        <TableCell>
+                          {isDrinkCategory(item.category) ? (
+                            <Input
+                              key={`${item.id}-30ml-${getItemVolumePrice(item, '30ml')}`}
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              defaultValue={getItemVolumePrice(item, '30ml') as number | ''}
+                              className="w-24"
+                              onBlur={(e) => updateItemVolumePrice(item, '30ml', e.target.value)}
+                           />
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {isDrinkCategory(item.category) ? (
+                            <Input
+                              key={`${item.id}-60ml-${getItemVolumePrice(item, '60ml')}`}
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              defaultValue={getItemVolumePrice(item, '60ml') as number | ''}
+                              className="w-24"
+                              onBlur={(e) => updateItemVolumePrice(item, '60ml', e.target.value)}
+                            />
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {isDrinkCategory(item.category) ? (
+                            <Input
+                              key={`${item.id}-90ml-${getItemVolumePrice(item, '90ml')}`}
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              defaultValue={getItemVolumePrice(item, '90ml') as number | ''}
+                              className="w-24"
+                              onBlur={(e) => updateItemVolumePrice(item, '90ml', e.target.value)}
+                            />
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Switch
                             checked={item.available}

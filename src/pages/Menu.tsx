@@ -486,10 +486,10 @@ const Menu = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-12 animate-fade-in">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+          <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight mb-2 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent drop-shadow-[0_2px_6px_rgba(56,189,248,0.35)]">
             {restaurantSettings?.name || t('menu.title')}
           </h1>
-          <p className="text-xl text-muted-foreground">{t('menu.subtitle')}</p>
+          {/* Subtitle intentionally removed as requested */}
         </div>
 
         {/* Happy Hours Banner */}
@@ -529,9 +529,7 @@ const Menu = () => {
                         <p className="text-amber-200/80 text-sm mt-1">{offer.description}</p>
                       )}
                     </div>
-                    <Badge variant="secondary" className="bg-amber-500 text-amber-900">
-                      {t('menu.offers.active')}
-                    </Badge>
+                    {/* Active text badge removed as requested */}
                   </div>
                 ))}
               </div>
