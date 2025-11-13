@@ -150,13 +150,33 @@ const AdminDashboard = () => {
   const [bulkQrCodes, setBulkQrCodes] = useState<Array<{ table: string; url: string }>>([]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/admin/login");
+        setLoading(false);
+        return;
       }
+
+      // Verify admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "admin")
+        .single();
+
+      if (roleError || !roleData) {
+        toast.error("Access Denied: You don't have admin privileges");
+        navigate("/menu");
+        setLoading(false);
+        return;
+      }
+
+      setSession(session);
       setLoading(false);
-    });
+    };
+    checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -276,32 +296,10 @@ const AdminDashboard = () => {
     navigate("/admin/login");
   };
 
-  // Add new function for creating admin users
+  // Admin creation function removed for security - admins must be created via secure backend process
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      // Convert username to email for Supabase authentication
-      const email = adminFormData.username === "admin" ? "admin@livebar.com" : `${adminFormData.username}@livebar.com`;
-      
-      // Create the admin user
-      const { error } = await supabase.auth.signUp({
-        email,
-        password: adminFormData.password,
-      });
-
-      if (error) throw error;
-
-      toast.success("Admin account created successfully!");
-      setAdminDialogOpen(false);
-      setAdminFormData({ username: "", password: "" });
-    } catch (error: any) {
-      console.error("Error creating admin:", error);
-      toast.error(error.message || "Failed to create admin account");
-    } finally {
-      setLoading(false);
-    }
+    toast.error("Feature Disabled: Admin account creation has been disabled for security. Contact system administrator.");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
