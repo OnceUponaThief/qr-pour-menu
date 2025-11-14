@@ -39,9 +39,18 @@ const lowEndWhisky = [
   { name: 'BAGPIPER', price30: 160 },
   { name: '8PM', price30: 170 },
   { name: 'ROYAL CHALLENGE', price30: 240 },
+  { name: 'DSP BLACK', price30: 200 },
+  { name: 'ARISTOCRAT PREMIUM', price30: 200 },
 ];
 
 const premiumWhisky = [
+  { name: 'BLENDERS PRIDE', price30: 300 },
+  { name: 'SIGNATURE RARE AGED', price30: 300 },
+  { name: 'ANTIQUITY BLUE', price30: 320 },
+  { name: 'ROCKFORD RESERVE', price30: 300 },
+  { name: 'VAT 69', price30: 350 },
+  { name: 'BALLANTINES FINEST', price30: 380 },
+  { name: 'GRANTS', price30: 350 },
   { name: 'OAKSMITH GOLD', price30: 300 },
   { name: 'BLACK & WHITE', price30: 350 },
   { name: 'J & B RARE', price30: 400 },
@@ -70,9 +79,12 @@ const lowEndVodka = [
   { name: 'WHITE MISCHIEF', price30: 200 },
   { name: 'ROMANOV', price30: 200 },
   { name: 'MAGIC MOMENTS', price30: 250 },
+  { name: 'MAGIC MOMENTS FLAVOURS', price30: 270 },
+  { name: 'FUEL VODKA', price30: 280 },
 ];
 
 const premiumVodka = [
+  { name: 'ERISTOFF', price30: 320 },
   { name: 'SMIRNOFF', price30: 300 },
   { name: 'SMIRNOFF FLAVOUR', price30: 320 },
   { name: 'ABSOLUT', price30: 450 },
@@ -90,15 +102,23 @@ const premiumRum = [
   { name: 'BACARDI BLACK', price30: 300 },
   { name: 'BACARDI LIMON', price30: 320 },
   { name: 'CAPTAIN MORGAN', price30: 300 },
+  { name: 'CONTESSA RUM', price30: 260 },
+  { name: 'HERCULES XXX RUM', price30: 240 },
+  { name: 'OLD PORT RUM', price30: 260 },
 ];
 
 const lowEndBrandy = [
   { name: 'HONEY BEE', price30: 250 },
   { name: 'MANSION HOUSE', price30: 300 },
+  { name: 'OLD ADMIRAL BRANDY', price30: 280 },
+  { name: 'MCDOWELLS NO.1 BRANDY', price30: 280 },
 ];
 
 const premiumGin = [
+  { name: 'BLUE RIBAND', price30: 280 },
   { name: 'GREATER THAN', price30: 350 },
+  { name: 'STRANGER & SONS', price30: 450 },
+  { name: 'HAPUSA', price30: 600 },
   { name: 'GORDONS', price30: 350 },
   { name: 'BEEFEATER', price30: 400 },
   { name: 'BOMBAY SAPPHIRE', price30: 450 },
