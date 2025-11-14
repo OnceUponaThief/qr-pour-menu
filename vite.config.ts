@@ -8,7 +8,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
+    // Use a stable dev port to avoid auto-switching and preview mismatches
+    port: 8081,
     proxy: {
       // Proxy Dicebear API to avoid browser ORB/CORS issues by serving via same-origin
       "/dicebear": {
@@ -24,7 +25,8 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true
+        // Disable PWA service worker in development to prevent SW/HMR conflicts
+        enabled: false
       },
       manifest: {
         name: 'QR Menu App',
