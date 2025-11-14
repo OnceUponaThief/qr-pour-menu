@@ -21,15 +21,27 @@ interface Review {
 const Index = () => {
   const navigate = useNavigate();
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsEnabled, setReviewsEnabled] = useState(true);
 
   useEffect(() => {
     const fetchApprovedReviews = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("reviews")
         .select("id, customer_name, rating, review_text, photo_urls, admin_reply, admin_reply_at, created_at")
         .eq("is_approved", true)
         .order("created_at", { ascending: false })
         .limit(6);
+      if (error) {
+        const msg = (error as any)?.message?.toLowerCase?.() || "";
+        const code = (error as any)?.code || "";
+        if (code === 'PGRST205' || msg.includes("could not find the table 'public.reviews'")) {
+          setReviewsEnabled(false);
+          setReviews([]);
+          return;
+        }
+        console.error('Error fetching reviews on Index:', error);
+        return;
+      }
       setReviews(data || []);
     };
     fetchApprovedReviews();
@@ -220,7 +232,9 @@ const Index = () => {
             <h2 className="text-3xl font-bold brand-gradient-text">Testimonials</h2>
             <Button variant="outline" onClick={() => navigate("/menu")}>See Menu</Button>
           </div>
-          {reviews.length === 0 ? (
+          {!reviewsEnabled ? (
+            <p className="text-white/70">Reviews are not available yet.</p>
+          ) : reviews.length === 0 ? (
             <p className="text-white/70">No approved reviews yet.</p>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

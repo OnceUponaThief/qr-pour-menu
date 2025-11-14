@@ -120,6 +120,19 @@ const DRINK_TYPE_FILTERS: Record<string, string[]> = {
   shakes: ["shake", "shakes", "milkshake", "milkshakes"],
 };
 
+// Food type filters for quick access to sub-categories under FOOD
+const FOOD_TYPE_FILTERS: Record<string, string[]> = {
+  all: [],
+  appetizers: ["appetizer", "appetizers", "starter", "starters", "snack", "snacks"],
+  soup: ["soup", "soups"],
+  main: ["main course", "main", "entree", "mains"],
+  rice: ["rice", "biryani", "pulao", "pulav"],
+  noodles: ["noodles", "noodle", "chowmein", "hakka"],
+  dal: ["dal", "dhal", "daal", "lentils"],
+  bread: ["bread", "roti", "naan", "paratha", "chapati", "kulcha"],
+  desserts: ["dessert", "desserts", "sweet", "sweets"],
+};
+
 const Menu = () => {
   const { t, i18n } = useTranslation();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -130,6 +143,8 @@ const Menu = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("drinks");
   const [drinkFilter, setDrinkFilter] = useState<keyof typeof DRINK_TYPE_FILTERS>("all");
+  const [foodFilter, setFoodFilter] = useState<keyof typeof FOOD_TYPE_FILTERS>("all");
+  const [foodDietFilter, setFoodDietFilter] = useState<'all' | 'veg' | 'nonveg'>("all");
   const [isHappyHour, setIsHappyHour] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -232,6 +247,8 @@ const Menu = () => {
     }
   };
 
+  const [reviewsEnabled, setReviewsEnabled] = useState(true);
+
   const fetchApprovedReviews = async () => {
     try {
       const { data, error } = await supabase
@@ -240,7 +257,17 @@ const Menu = () => {
         .eq("is_approved", true)
         .order("created_at", { ascending: false })
         .limit(12);
-      if (error) throw error;
+      if (error) {
+        // If the reviews table does not exist, disable reviews gracefully
+        const msg = (error as any)?.message?.toLowerCase?.() || "";
+        const code = (error as any)?.code || "";
+        if (code === 'PGRST205' || msg.includes("could not find the table 'public.reviews'")) {
+          setReviewsEnabled(false);
+          setReviews([]);
+          return;
+        }
+        throw error;
+      }
       setReviews(data || []);
     } catch (error) {
       console.error("Error fetching reviews:", error);
@@ -367,6 +394,31 @@ const Menu = () => {
     };
   };
 
+  // Helpers to determine veg vs non-veg from dietary_preferences
+  const isVeg = (item: MenuItem) => {
+    const prefs = (item.dietary_preferences || []).map(p => p.toLowerCase());
+    return prefs.includes('veg') || prefs.includes('vegetarian') || prefs.includes('pure veg');
+  };
+
+  const isNonVeg = (item: MenuItem) => {
+    const prefs = (item.dietary_preferences || []).map(p => p.toLowerCase());
+    // common non-veg indicators
+    return (
+      prefs.includes('non-veg') ||
+      prefs.includes('non veg') ||
+      prefs.includes('nonvegetarian') ||
+      prefs.includes('non vegetarian') ||
+      prefs.includes('egg') ||
+      prefs.includes('eggetarian') ||
+      prefs.includes('chicken') ||
+      prefs.includes('mutton') ||
+      prefs.includes('fish') ||
+      prefs.includes('seafood') ||
+      prefs.includes('prawn') ||
+      prefs.includes('shrimp')
+    );
+  };
+
   // Handle add to cart
   const handleAddToCart = (item: MenuItem) => {
     console.log("Add to cart:", item);
@@ -427,6 +479,33 @@ const Menu = () => {
             const keywords = DRINK_TYPE_FILTERS[drinkFilter] || [];
             return keywords.some(k => lc.includes(k) || lc === k);
           });
+      
+      if (drinkCategoriesFiltered.length === 0) {
+        return (
+          <div className="space-y-6">
+            {/* Sub-filter row for drink types */}
+            <div className="mb-4 flex gap-2 flex-wrap">
+              {Object.keys(DRINK_TYPE_FILTERS).map((type) => (
+                <Button
+                  key={type}
+                  variant={drinkFilter === type ? "default" : "ghost"}
+                  className={
+                    drinkFilter === type
+                      ? "bg-gradient-to-r from-[hsl(var(--brand-from-hsl))] via-[hsl(var(--brand-via-hsl))] to-[hsl(var(--brand-to-hsl))] text-gray-900"
+                      : "text-cyan-300"
+                  }
+                  onClick={() => setDrinkFilter(type as keyof typeof DRINK_TYPE_FILTERS)}
+                >
+                  {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
+                </Button>
+              ))}
+            </div>
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No items found for this drink filter.</p>
+            </div>
+          </div>
+        );
+      }
       
       if (drinkCategories.length === 0) {
         return (
@@ -490,6 +569,15 @@ const Menu = () => {
         )
       );
       
+      // Apply sub-filter by food type
+      const foodCategoriesFiltered = foodFilter === "all"
+        ? foodCategories
+        : foodCategories.filter(cat => {
+            const lc = cat.toLowerCase();
+            const keywords = FOOD_TYPE_FILTERS[foodFilter] || [];
+            return keywords.some(k => lc.includes(k) || lc === k);
+          });
+
       if (foodCategories.length === 0) {
         return (
           <div className="text-center py-12">
@@ -500,11 +588,59 @@ const Menu = () => {
       
       return (
         <div className="space-y-12">
-          {foodCategories.map(category => (
+          {/* Sub-filter row for food types */}
+          <div className="mb-4 flex gap-2 flex-wrap">
+            {Object.keys(FOOD_TYPE_FILTERS).map((type) => (
+              <Button
+                key={type}
+                variant={foodFilter === type ? "default" : "ghost"}
+                className={
+                  foodFilter === type
+                    ? "bg-gradient-to-r from-[hsl(var(--brand-from-hsl))] via-[hsl(var(--brand-via-hsl))] to-[hsl(var(--brand-to-hsl))] text-gray-900"
+                    : "text-cyan-300"
+                }
+                onClick={() => setFoodFilter(type as keyof typeof FOOD_TYPE_FILTERS)}
+              >
+                {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
+              </Button>
+            ))}
+          </div>
+
+          {/* Veg / Non-Veg toggle */}
+          <div className="mb-6 flex gap-2 flex-wrap">
+            {(['all','veg','nonveg'] as const).map(type => (
+              <Button
+                key={type}
+                variant={foodDietFilter === type ? "default" : "ghost"}
+                className={
+                  foodDietFilter === type
+                    ? "bg-gradient-to-r from-[hsl(var(--brand-from-hsl))] via-[hsl(var(--brand-via-hsl))] to-[hsl(var(--brand-to-hsl))] text-gray-900"
+                    : "text-cyan-300"
+                }
+                onClick={() => setFoodDietFilter(type)}
+              >
+                {type === 'all' ? 'All' : type === 'veg' ? 'Veg' : 'Non-Veg'}
+              </Button>
+            ))}
+          </div>
+          {/* If current filter returns no categories, show a helpful message */}
+          {foodCategoriesFiltered.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No items found for this food filter</p>
+            </div>
+          ) : null}
+
+          {foodCategoriesFiltered.map(category => (
             <div key={category}>
               <h3 className="text-2xl font-bold mb-6 capitalize">{category}</h3>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {groupedItems.regular[category]?.map((item) => (
+                {(groupedItems.regular[category] || [])
+                  .filter(item => {
+                    if (foodDietFilter === 'veg') return isVeg(item);
+                    if (foodDietFilter === 'nonveg') return isNonVeg(item);
+                    return true; // all
+                  })
+                  .map((item) => (
                   <MenuCard 
                     key={item.id} 
                     name={item.name}
@@ -745,7 +881,8 @@ const Menu = () => {
         {/* Menu Items */}
         {renderMenuItems()}
 
-        {/* End-of-menu Reviews & AI-generated samples */}
+        {/* End-of-menu Reviews */}
+        {reviewsEnabled && (
         <div className="mt-16 mb-12 animate-fade-in">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -796,8 +933,13 @@ const Menu = () => {
             </div>
           )}
 
-          {/* AI-generated sample reviews removed per request */}
         </div>
+        )}
+        {!reviewsEnabled && (
+          <div className="mt-16 mb-12 text-center text-gray-300">
+            Reviews are not available yet.
+          </div>
+        )}
       </div>
 
       {/* Brand Footer with Logo and Website Link */}
