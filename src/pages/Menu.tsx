@@ -97,7 +97,19 @@ const CATEGORY_GROUPS = {
     "breezers",
     "imfl",
   ],
-  food: ["food", "appetizers", "soup", "main course", "rice", "noodles", "dal", "bread", "desserts"],
+  food: [
+    "food",
+    "food_veg",
+    "food_non_veg",
+    "appetizers",
+    "soup",
+    "main course",
+    "rice",
+    "noodles",
+    "dal",
+    "bread",
+    "desserts"
+  ],
 };
 
 // Drink type filters to allow quick access to sub-categories like Cocktail, Mocktail, etc.
