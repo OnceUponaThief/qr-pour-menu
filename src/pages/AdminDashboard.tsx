@@ -1103,7 +1103,12 @@ const AdminDashboard = () => {
 
         {/* Export / Print controls for Admin */}
         <div className="mb-8">
-          <ExportToolbar items={getFilteredMenuItems()} fileBaseName={`menu-${categoryFilter}`} />
+          <ExportToolbar
+            items={getFilteredMenuItems()}
+            fileBaseName={`menu-${categoryFilter}`}
+            brandName={restaurantSettings?.name || "Menu"}
+            logoUrl={restaurantSettings?.logo_url || null}
+          />
         </div>
 
         {/* Restaurant Settings Card */}
@@ -1288,40 +1293,33 @@ const AdminDashboard = () => {
                         <Label htmlFor="available">Available</Label>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="image_url">Image URL</Label>
-                      <Input
-                        id="image_url"
-                        type="url"
-                        value={formData.image_url}
-                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                        placeholder="https://example.com/image.jpg"
-                      />
-                      <div className="relative">
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleMenuItemImageUpload}
-                          className="hidden"
-                          id="menu-item-image-upload"
-                        />
-                        <Label htmlFor="menu-item-image-upload" className="cursor-pointer">
-                          <Button type="button" variant="outline" className="w-full mt-2">
-                            <Upload className="mr-2 h-4 w-4" />
-                            Upload Image
-                          </Button>
-                        </Label>
-                      </div>
-                      {formData.image_url && (
-                        <div className="mt-2">
-                          <img 
-                            src={formData.image_url} 
-                            alt="Preview" 
-                            className="h-32 w-full object-cover rounded-lg border"
-                          />
-                        </div>
-                      )}
-                    </div>
+              <div className="space-y-2">
+                <Label htmlFor="menu-item-image-upload">Item Image</Label>
+                <div className="relative">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleMenuItemImageUpload}
+                    className="hidden"
+                    id="menu-item-image-upload"
+                  />
+                  <Label htmlFor="menu-item-image-upload" className="cursor-pointer">
+                    <Button type="button" variant="outline" className="w-full">
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Image
+                    </Button>
+                  </Label>
+                </div>
+                {formData.image_url && (
+                  <div className="mt-2">
+                    <img 
+                      src={formData.image_url} 
+                      alt="Preview" 
+                      className="h-32 w-full object-cover rounded-lg border"
+                    />
+                  </div>
+                )}
+              </div>
 
                     {/* Volume/Size Pricing (shown for drink categories) */}
                     {CATEGORY_GROUPS.drinks.some(drinkCat => {
@@ -1557,26 +1555,17 @@ const AdminDashboard = () => {
                             ) : (
                               <span className="text-muted-foreground">—</span>
                             )}
-                            <div className="flex items-center gap-1">
+                            <div>
                               <Input
-                                type="url"
-                                defaultValue={item.image_url || ''}
-                                placeholder="Image URL"
-                                className="w-40"
-                                onBlur={(e) => updateItemImageUrl(item, e.target.value)}
+                                type="file"
+                                accept="image/*"
+                                id={`upload-${item.id}`}
+                                className="hidden"
+                                onChange={(e) => handleInlineImageUpload(item, e)}
                               />
-                              <div>
-                                <Input
-                                  type="file"
-                                  accept="image/*"
-                                  id={`upload-${item.id}`}
-                                  className="hidden"
-                                  onChange={(e) => handleInlineImageUpload(item, e)}
-                                />
-                                <Label htmlFor={`upload-${item.id}`} className="cursor-pointer">
-                                  <Button type="button" variant="outline" size="sm">Upload</Button>
-                                </Label>
-                              </div>
+                              <Label htmlFor={`upload-${item.id}`} className="cursor-pointer">
+                                <Button type="button" variant="outline" size="sm">Upload</Button>
+                              </Label>
                             </div>
                           </div>
                         </TableCell>

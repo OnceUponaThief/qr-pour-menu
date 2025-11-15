@@ -1,7 +1,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Printer, Download, FileJson } from "lucide-react";
+import { Printer, Download, FileJson, FileDown } from "lucide-react";
+import jsPDF from "jspdf";
 
 type Modifier = {
   id: string;
@@ -28,6 +29,8 @@ type MenuItem = {
 interface ExportToolbarProps {
   items: MenuItem[];
   fileBaseName?: string;
+  brandName?: string;
+  logoUrl?: string | null;
 }
 
 /**
@@ -36,7 +39,7 @@ interface ExportToolbarProps {
  * - CSV exports a flat table of core fields, with modifiers and dietary preferences serialized.
  * - JSON exports the raw item objects for portability.
  */
-const ExportToolbar: React.FC<ExportToolbarProps> = ({ items, fileBaseName = "menu" }) => {
+const ExportToolbar: React.FC<ExportToolbarProps> = ({ items, fileBaseName = "menu", brandName = "Menu", logoUrl }) => {
   const handlePrint = () => {
     // Defer to ensure any UI state settles before print
     setTimeout(() => window.print(), 100);
@@ -107,6 +110,113 @@ const ExportToolbar: React.FC<ExportToolbarProps> = ({ items, fileBaseName = "me
     downloadBlob(blob, `${fileBaseName}.json`);
   };
 
+  const loadImageDataUrl = async (url?: string | null): Promise<string | undefined> => {
+    if (!url) return undefined;
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(undefined);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return undefined;
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Header background (brand bar)
+    doc.setFillColor(0, 17, 34); // dark brand bar
+    doc.rect(0, 0, pageWidth, 80, "F");
+
+    // Optional logo
+    const logoDataUrl = await loadImageDataUrl(logoUrl || undefined);
+    if (logoDataUrl) {
+      try {
+        doc.addImage(logoDataUrl, "PNG", 24, 16, 48, 48);
+      } catch {}
+    }
+
+    // Brand title
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.text(`${brandName} — Menu`, 90, 45);
+
+    // Small generated date in header
+    doc.setFontSize(10);
+    doc.text(new Date().toLocaleString(), pageWidth - 160, 24);
+
+    let y = 100;
+    const lineHeight = 18;
+    doc.setFontSize(12);
+    doc.setTextColor(20, 20, 20);
+
+    // Group items by category for nicer layout
+    const groups: Record<string, MenuItem[]> = {};
+    items.forEach((it) => {
+      const key = (it.category || "").toString();
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(it);
+    });
+
+    const categories = Object.keys(groups).sort();
+
+    const addFooter = (pageNum: number) => {
+      doc.setFontSize(9);
+      doc.setTextColor(120, 120, 120);
+      doc.text(`Page ${pageNum}`, pageWidth - 60, pageHeight - 20);
+    };
+
+    let pageNum = 1;
+    addFooter(pageNum);
+
+    for (const cat of categories) {
+      // Category heading
+      doc.setFontSize(14);
+      doc.setTextColor(0, 102, 255); // brand blue
+      doc.text(cat.toUpperCase(), 24, y);
+      y += lineHeight;
+      doc.setTextColor(20, 20, 20);
+      doc.setFontSize(12);
+
+      for (const item of groups[cat]) {
+        const name = item.name || "Unnamed";
+        const price = typeof item.price === "number" ? `₹${item.price.toFixed(2)}` : "";
+        const seasonal = item.seasonal ? " • Seasonal" : "";
+        const chef = item.chef_special ? " • Chef Special" : "";
+        const line = `${name} ${price}${seasonal}${chef}`;
+        doc.text(line, 32, y);
+        y += lineHeight;
+
+        // If near bottom, add page
+        if (y > pageHeight - 60) {
+          doc.addPage();
+          pageNum += 1;
+          addFooter(pageNum);
+          // repaint header bar on new page for consistency
+          doc.setFillColor(0, 17, 34);
+          doc.rect(0, 0, pageWidth, 80, "F");
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(20);
+          doc.text(`${brandName} — Menu`, 24, 45);
+          doc.setFontSize(12);
+          doc.setTextColor(20, 20, 20);
+          y = 100;
+        }
+      }
+
+      y += 8; // slight spacing between categories
+    }
+
+    doc.save(`${fileBaseName}.pdf`);
+  };
+
   return (
     <Card className="border-border bg-card no-print">
       <CardHeader>
@@ -128,6 +238,10 @@ const ExportToolbar: React.FC<ExportToolbarProps> = ({ items, fileBaseName = "me
           <Button variant="outline" onClick={handleDownloadJSON}>
             <FileJson className="mr-2 h-4 w-4" />
             Download JSON
+          </Button>
+          <Button variant="outline" onClick={handleDownloadPDF}>
+            <FileDown className="mr-2 h-4 w-4" />
+            Download PDF
           </Button>
         </div>
       </CardContent>
