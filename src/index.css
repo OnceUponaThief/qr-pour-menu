@@ -242,3 +242,12 @@ All colors MUST be HSL.
     }
   }
 }
+
+/* Print styles: hide elements with .no-print and provide page-break helpers */
+@media print {
+  .no-print { display: none !important; }
+  .print-section { page-break-inside: avoid; }
+  .page-break { page-break-after: always; }
+  /* Improve readability on white background when printing */
+  body { background: #ffffff !important; }
+}

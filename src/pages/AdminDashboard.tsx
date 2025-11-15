@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, LogOut, Plus, Pencil, Trash2, QrCode, Download, Printer, Upload } from "lucide-react";
+import ExportToolbar from "@/components/ExportToolbar";
 import { Session } from "@supabase/supabase-js";
 import QRCode from "qrcode";
 
@@ -1098,6 +1099,11 @@ const AdminDashboard = () => {
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
+        </div>
+
+        {/* Export / Print controls for Admin */}
+        <div className="mb-8">
+          <ExportToolbar items={getFilteredMenuItems()} fileBaseName={`menu-${categoryFilter}`} />
         </div>
 
         {/* Restaurant Settings Card */}
