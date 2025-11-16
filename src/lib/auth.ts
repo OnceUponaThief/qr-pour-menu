@@ -30,19 +30,6 @@ export async function assignAdminRole(userId: string): Promise<boolean> {
   }
 }
 
-/**
- * Assign moderator role to a user
- * This should only be called by administrators
- */
-export async function assignModeratorRole(userId: string): Promise<boolean> {
-  try {
-    const success = await assignRole(userId, "moderator");
-    return success;
-  } catch (error) {
-    console.error("Error assigning moderator role:", error);
-    return false;
-  }
-}
 
 /**
  * Initialize user roles

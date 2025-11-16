@@ -51,12 +51,6 @@ export async function isAdmin(userId: string): Promise<boolean> {
   return await hasRole(userId, "admin");
 }
 
-/**
- * Check if user is moderator
- */
-export async function isModerator(userId: string): Promise<boolean> {
-  return await hasRole(userId, "moderator");
-}
 
 /**
  * Check if user is a regular user
@@ -140,11 +134,4 @@ export async function currentUserHasRole(role: AppRole): Promise<boolean> {
  */
 export async function currentUserIdAdmin(): Promise<boolean> {
   return await currentUserHasRole("admin");
-}
-
-/**
- * Check if current user is moderator
- */
-export async function currentUserIsModerator(): Promise<boolean> {
-  return await currentUserHasRole("moderator");
 }
