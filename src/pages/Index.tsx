@@ -4,36 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { QrCode, Settings, Eye, BarChart3, ShieldCheck, Zap, Store, Globe, Star } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { ReviewCard } from "@/components/ReviewCard";
-
-interface Review {
-  id: string;
-  customer_name: string;
-  rating: number;
-  review_text?: string | null;
-  photo_urls?: string[] | null;
-  admin_reply?: string | null;
-  admin_reply_at?: string | null;
-  created_at: string;
-}
 
 const Index = () => {
   const navigate = useNavigate();
-  const [reviews, setReviews] = useState<Review[]>([]);
-
-  useEffect(() => {
-    const fetchApprovedReviews = async () => {
-      const { data } = await supabase
-        .from("reviews")
-        .select("id, customer_name, rating, review_text, photo_urls, admin_reply, admin_reply_at, created_at")
-        .eq("is_approved", true)
-        .order("created_at", { ascending: false })
-        .limit(6);
-      setReviews(data || []);
-    };
-    fetchApprovedReviews();
-  }, []);
 
   return (
     <div className="min-h-screen py-12 px-4 bg-gradient-to-br from-gray-900 to-black text-white">
@@ -212,32 +185,6 @@ const Index = () => {
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        {/* Testimonials */}
-        <div className="mt-16">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold brand-gradient-text">Testimonials</h2>
-            <Button variant="outline" onClick={() => navigate("/menu")}>See Menu</Button>
-          </div>
-          {reviews.length === 0 ? (
-            <p className="text-white/70">No approved reviews yet.</p>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {reviews.map(r => (
-                <ReviewCard
-                  key={r.id}
-                  customerName={r.customer_name}
-                  rating={r.rating}
-                  reviewText={r.review_text || undefined}
-                  photoUrls={r.photo_urls || undefined}
-                  adminReply={r.admin_reply || undefined}
-                  adminReplyAt={r.admin_reply_at || undefined}
-                  createdAt={r.created_at}
-                />
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Footer */}

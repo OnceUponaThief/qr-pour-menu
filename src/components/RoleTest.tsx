@@ -3,7 +3,7 @@ import { useRoles } from "@/hooks/useRoles";
 import { supabase } from "@/integrations/supabase/client";
 
 const RoleTest = () => {
-  const { roles, isAdmin, isModerator, isUser, loading } = useRoles();
+  const { roles, isAdmin, isUser, loading } = useRoles();
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,7 +28,6 @@ const RoleTest = () => {
       <div className="space-y-2">
         <p><strong>User ID:</strong> {userId || "Not logged in"}</p>
         <p><strong>Is Admin:</strong> {isAdmin ? "Yes" : "No"}</p>
-        <p><strong>Is Moderator:</strong> {isModerator ? "Yes" : "No"}</p>
         <p><strong>Is User:</strong> {isUser ? "Yes" : "No"}</p>
         
         <div>

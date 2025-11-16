@@ -50,7 +50,6 @@ export const useRoles = () => {
   };
 
   const isAdmin = hasRole("admin");
-  const isModerator = hasRole("moderator");
   const isUser = hasRole("user");
 
   return {
@@ -59,7 +58,6 @@ export const useRoles = () => {
     error,
     hasRole,
     isAdmin,
-    isModerator,
     isUser,
     refresh: () => {
       // Re-fetch roles

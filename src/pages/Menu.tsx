@@ -7,8 +7,6 @@ import { Loader2, Search, Sparkles, ChefHat, Leaf, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/currency";
-import { ReviewCard } from "@/components/ReviewCard";
-import { ReviewDialog } from "@/components/ReviewDialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -53,20 +51,6 @@ interface RestaurantSettings {
   timezone: string | null;
   created_at: string | null;
   updated_at: string | null;
-}
-
-interface Review {
-  id: string;
-  menu_item_id: string;
-  customer_name: string;
-  customer_phone?: string | null;
-  rating: number;
-  review_text?: string | null;
-  photo_urls?: string[] | null;
-  is_approved: boolean;
-  admin_reply?: string | null;
-  admin_reply_at?: string | null;
-  created_at: string;
 }
 
 // Define category groups for better organization
@@ -131,10 +115,6 @@ const Menu = () => {
   const [activeTab, setActiveTab] = useState("drinks");
   const [drinkFilter, setDrinkFilter] = useState<keyof typeof DRINK_TYPE_FILTERS>("all");
   const [isHappyHour, setIsHappyHour] = useState(false);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
-  const [selectedReviewItemId, setSelectedReviewItemId] = useState<string>("");
-  const [selectedReviewItemName, setSelectedReviewItemName] = useState<string>("");
   
   // Filter active offers
   const activeOffers = offers.filter(offer => offer.is_active);
@@ -157,7 +137,7 @@ const Menu = () => {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchMenuItems(), fetchOffers(), fetchRestaurantSettings(), fetchApprovedReviews()]);
+    Promise.all([fetchMenuItems(), fetchOffers(), fetchRestaurantSettings()]);
   }, []);
 
   useEffect(() => {
@@ -229,21 +209,6 @@ const Menu = () => {
       console.error("Error fetching restaurant settings:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchApprovedReviews = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("reviews")
-        .select("*")
-        .eq("is_approved", true)
-        .order("created_at", { ascending: false })
-        .limit(12);
-      if (error) throw error;
-      setReviews(data || []);
-    } catch (error) {
-      console.error("Error fetching reviews:", error);
     }
   };
 
@@ -744,60 +709,6 @@ const Menu = () => {
 
         {/* Menu Items */}
         {renderMenuItems()}
-
-        {/* End-of-menu Reviews & AI-generated samples */}
-        <div className="mt-16 mb-12 animate-fade-in">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-6 w-6 text-pink-400" />
-              <h2 className="text-3xl font-bold brand-gradient-text">Customer Reviews</h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <Select onValueChange={(val) => {
-                const item = menuItems.find(mi => mi.id === val);
-                setSelectedReviewItemId(val);
-                setSelectedReviewItemName(item?.name || "");
-              }}>
-                <SelectTrigger className="w-56 bg-gray-800 border-cyan-500/30">
-                  <SelectValue placeholder="Choose item" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 text-white">
-                  {menuItems.map(mi => (
-                    <SelectItem key={mi.id} value={mi.id}>{mi.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                className="bg-gradient-to-r from-cyan-500 via-violet-500 to-pink-500 text-gray-900"
-                disabled={!selectedReviewItemId}
-                onClick={() => setReviewDialogOpen(true)}
-              >
-                Write a Review
-              </Button>
-            </div>
-          </div>
-
-          {reviews.length === 0 ? (
-            <div className="text-center py-8 text-gray-300">No approved reviews yet. Be the first to write one!</div>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {reviews.map((r) => (
-                <ReviewCard
-                  key={r.id}
-                  customerName={r.customer_name}
-                  rating={r.rating}
-                  reviewText={r.review_text || undefined}
-                  photoUrls={r.photo_urls || undefined}
-                  adminReply={r.admin_reply || undefined}
-                  createdAt={r.created_at}
-                  adminReplyAt={r.admin_reply_at || undefined}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* AI-generated sample reviews removed per request */}
-        </div>
       </div>
 
       {/* Brand Footer with Logo and Website Link */}
@@ -826,17 +737,6 @@ const Menu = () => {
           </a>
         </div>
       </footer>
-
-      {/* Review Dialog */}
-      {selectedReviewItemId && (
-        <ReviewDialog
-          open={reviewDialogOpen}
-          onOpenChange={setReviewDialogOpen}
-          menuItemId={selectedReviewItemId}
-          menuItemName={selectedReviewItemName}
-          onReviewSubmitted={fetchApprovedReviews}
-        />
-      )}
     </div>
   );
 };

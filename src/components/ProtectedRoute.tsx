@@ -6,13 +6,13 @@ import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "admin" | "moderator" | "user";
+  requiredRole?: "admin" | "user";
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const { hasRole, isAdmin, isModerator, isUser, refresh } = useRoles();
+  const { hasRole, isAdmin, isUser, refresh } = useRoles();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -57,7 +57,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [navigate, requiredRole, hasRole, isAdmin, isModerator, isUser, refresh]);
+  }, [navigate, requiredRole, hasRole, isAdmin, isUser, refresh]);
 
   if (loading) {
     return (
