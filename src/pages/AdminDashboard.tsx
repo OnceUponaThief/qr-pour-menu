@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Loader2, LogOut, Plus, Pencil, Trash2, QrCode, Download, Printer, Upload } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import QRCode from "qrcode";
+import { z } from "zod";
 
 interface MenuItem {
   id: string;
@@ -67,6 +68,55 @@ interface AiSettings {
   apiKey: string;
   modelName?: string;
 }
+
+// Zod validation schema for menu items
+const VALID_CATEGORIES = [
+  "drinks", "cocktails", "mocktails", "shake", "shakes", "beer", "wine", 
+  "whiskey", "vodka", "gin", "rum", "brandy", "tequila", "liqueur", 
+  "liqueurs", "shots", "breezers", "imfl", "food", "appetizers", 
+  "soup", "main course", "rice", "noodles", "dal", "bread", "desserts"
+] as const;
+
+const menuItemSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(1, "Name is required")
+    .max(100, "Name must be less than 100 characters"),
+  description: z.string()
+    .max(500, "Description must be less than 500 characters")
+    .nullable()
+    .optional(),
+  price: z.number()
+    .positive("Price must be positive")
+    .max(1000000, "Price must be less than 1,000,000")
+    .refine(val => !isNaN(val), "Price must be a valid number"),
+  category: z.string()
+    .trim()
+    .min(1, "Category is required")
+    .max(50, "Category must be less than 50 characters")
+    .refine(
+      val => VALID_CATEGORIES.some(cat => val.toLowerCase().includes(cat.toLowerCase())),
+      "Invalid category"
+    ),
+  image_url: z.string()
+    .trim()
+    .url("Invalid URL format")
+    .max(500, "URL must be less than 500 characters")
+    .nullable()
+    .optional()
+    .or(z.literal("")),
+  available: z.boolean(),
+  modifiers: z.array(z.object({
+    id: z.string(),
+    name: z.string().min(1).max(50),
+    price: z.number().nonnegative(),
+    max_selections: z.number().positive().optional(),
+    required: z.boolean().optional()
+  })).optional(),
+  dietary_preferences: z.array(z.string().max(50)).optional(),
+  seasonal: z.boolean().optional(),
+  chef_special: z.boolean().optional()
+});
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -418,6 +468,7 @@ const AdminDashboard = () => {
     setLoading(true);
 
     try {
+      // Prepare data for validation
       const itemData = {
         name: formData.name,
         description: formData.description || null,
@@ -425,22 +476,36 @@ const AdminDashboard = () => {
         category: formData.category,
         image_url: formData.image_url || null,
         available: formData.available,
-        modifiers: formData.modifiers as any,
-        dietary_preferences: formData.dietary_preferences as any,
+        modifiers: formData.modifiers,
+        dietary_preferences: formData.dietary_preferences,
         seasonal: formData.seasonal,
         chef_special: formData.chef_special,
       };
 
+      // Validate input data with Zod
+      const validationResult = menuItemSchema.safeParse(itemData);
+      
+      if (!validationResult.success) {
+        const errors = validationResult.error.errors;
+        const errorMessage = errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+        toast.error(`Validation failed: ${errorMessage}`);
+        setLoading(false);
+        return;
+      }
+
+      // Use validated data
+      const validatedData = validationResult.data;
+
       if (editingItem) {
         const { error } = await supabase
           .from("menu_items")
-          .update(itemData)
+          .update(validatedData as any)
           .eq("id", editingItem.id);
 
         if (error) throw error;
         toast.success("Item updated successfully!");
       } else {
-        const { error } = await supabase.from("menu_items").insert([itemData]);
+        const { error } = await supabase.from("menu_items").insert([validatedData as any]);
 
         if (error) throw error;
         toast.success("Item added successfully!");
