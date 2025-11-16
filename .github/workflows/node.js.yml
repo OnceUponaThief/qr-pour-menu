@@ -1,0 +1,61 @@
+// update_prices_30_percent.js
+import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+async function updateAllPrices() {
+  try {
+    console.log('🔄 Starting price update...');
+    
+    // Fetch all menu items
+    const { data: menuItems, error: fetchError } = await supabase
+      .from('menu_items')
+      .select('*');
+    
+    if (fetchError) {
+      console.error('❌ Error fetching menu items:', fetchError);
+      return;
+    }
+    
+    console.log(`📊 Found ${menuItems.length} menu items`);
+    
+    // Update each item with 30% price increase
+    let updated = 0;
+    let failed = 0;
+    
+    for (const item of menuItems) {
+      const oldPrice = parseFloat(item.price);
+      const newPrice = (oldPrice * 1.30).toFixed(2); // 30% increase
+      
+      const { error: updateError } = await supabase
+        .from('menu_items')
+        .update({ price: newPrice })
+        .eq('id', item.id);
+      
+      if (updateError) {
+        console.error(`❌ Failed to update ${item.name}:`, updateError);
+        failed++;
+      } else {
+        console.log(`✅ Updated "${item.name}": ₹${oldPrice} → ₹${newPrice}`);
+        updated++;
+      }
+    }
+    
+    console.log(`\n✨ Update complete!`);
+    console.log(`   ✅ Updated: ${updated}`);
+    console.log(`   ❌ Failed: ${failed}`);
+    
+  } catch (error) {
+    console.error('❌ Script error:', error);
+  }
+}
+
+// Run the update
+updateAllPrices();
